@@ -1,4 +1,3 @@
-# Web app
-web/node_modules
-web/.env
-web/yarn.lock
+.env
+yarn.lock
+node_modules
