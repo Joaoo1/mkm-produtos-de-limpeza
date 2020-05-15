@@ -11,6 +11,7 @@ import {
 // Styled Components
 import { ProductModal, ModalButtonsContainer } from '../../styles/modal';
 import { PrimaryButton, SecondaryButton } from '../../styles/button';
+import { CheckboxContainer } from './styles';
 import {
   List as ProductList,
   DropdownContent,
@@ -203,7 +204,7 @@ export default function Products() {
           onChange={e => setProduct({ ...product, preco: e.target.value })}
         />
 
-        <div className="checkbox-stock">
+        <CheckboxContainer>
           <Checkbox
             checked={product.manageStock}
             onChange={() =>
@@ -214,7 +215,7 @@ export default function Products() {
             }
           />
           Gerenciar estoque
-        </div>
+        </CheckboxContainer>
 
         <p>Estoque</p>
         <input

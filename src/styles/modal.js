@@ -7,7 +7,6 @@ const BaseModal = styled(ReactModal)`
   bottom: 5%;
   left: 50%;
   width: 580px;
-  max-height: 575px;
   /* To centralize the modal, set a half of the width modal to left */
   margin-left: -290px;
   background-color: #fcfcfc;
@@ -28,10 +27,20 @@ const BaseModal = styled(ReactModal)`
     margin: 10px -15px 15px -15px;
     opacity: 0.3;
   }
+  /* Hide scrollbars but keep functionality */
+  ::-webkit-scrollbar {
+    display: none;
+    -ms-overflow-style: none; /* For IE and Edge*/
+  }
+
+  h2 {
+    font-weight: normal;
+    font-size: 20px;
+  }
 `;
 
 const ProductModal = styled(BaseModal)`
-  height: 455px;
+  height: 435px;
 
   input#product-name {
     width: 100%;
@@ -49,7 +58,7 @@ const ClientModal = styled(BaseModal)`
 const ModalButtonsContainer = styled.div`
   display: flex;
   justify-content: flex-end;
-  margin-top: 0px;
+  margin-top: 25px;
   button {
     margin-left: 15px;
   }

@@ -48,6 +48,17 @@ export default createGlobalStyle`
   }
 
 /* Modal */ 
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color:rgba(0,0,0,0.25);
+    opacity: 0;
+    transition: opacity 450ms ease-in-out;
+  }
+  
 .ReactModal__Overlay--after-open{
     opacity: 1;
 }
