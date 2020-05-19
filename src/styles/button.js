@@ -24,5 +24,5 @@ const SecondaryButton = styled(BaseButton)`
 const WarningButton = styled(BaseButton)`
   background-color: #ff2424;
 `;
-export default BaseButton;
-export { PrimaryButton, SecondaryButton, WarningButton };
+
+export { BaseButton, PrimaryButton, SecondaryButton, WarningButton };

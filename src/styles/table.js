@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import BaseButton from './button';
+import { BaseButton } from './button';
 
 export const List = styled.table`
   min-width: 770px;
