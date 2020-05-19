@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import BaseButton, { PrimaryButton } from '../../styles/button';
+import { BaseButton, PrimaryButton } from '../../styles/button';
 
 const ListHeaderContainer = styled.div`
   display: flex;
