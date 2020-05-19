@@ -1,5 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiMoreVertical } from 'react-icons/fi';
+import { useHistory } from 'react-router-dom';
+
+import SaleController from '../../controllers/SaleController';
+
+import { SaleModal } from '../../styles/modal';
 import {
   List as SalesList,
   DropdownContent,
@@ -8,43 +13,51 @@ import {
 } from '../../styles/table';
 
 import ListHeader from '../../components/ListHeader';
+import ConfirmModal from '../../components/ConfirmModal';
 
 export default function Sales() {
-  const salesList = [
-    {
-      idVenda: 1324,
-      situation: 'NÃO PAGO',
-      dataVenda: new Date().toLocaleString('pt-BR'),
-      dataPagamento: new Date().toLocaleString('pt-BR'),
-      desconto: '0.00',
-      valorAReceber: '20.00',
-      valorLiquido: '20.00',
-      valorBruto: '20.00',
-      sellerUid: String,
-      seller: String,
-      idCliente: String,
-      nomeCliente: 'João vitor',
-      enderecoCliente: String,
-      complementoCliente: String,
-      bairroCliente: String,
-      cidadeCliente: String,
-      telefone: String,
-      products: [
-        {
-          nome: 'Detergente',
-          quantidade: 1,
-        },
-        {
-          nome: 'Desifetante',
-          quantidade: 2,
-        },
-      ],
-    },
-  ];
+  SaleModal.setAppElement('#root');
+  const history = useHistory();
+
+  const [salesList, setSalesList] = useState([]);
+  const [sale, setSale] = useState({});
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+
+  useEffect(() => {
+    async function fetchSales() {
+      const sales = SaleController.index();
+      setTimeout(() => setSalesList(sales), 2000);
+    }
+    fetchSales();
+  }, []);
+
+  function toggleDeleteModal(s) {
+    setSale({});
+    if (s) {
+      setSale(s);
+      setDeleteModalOpen(true);
+    } else {
+      setDeleteModalOpen(false);
+    }
+  }
+
+  function handleHistory(data) {
+    history.push(data);
+  }
+
+  function handleDelete(sale1) {
+    SaleController.delete(sale1);
+  }
+
   return (
     <div>
       <ListHeader
-        btnFunction={() => {}}
+        btnFunction={() => {
+          history.push({
+            pathname: '/sales/add',
+            data: { pageTitle: 'Registrar venda' },
+          });
+        }}
         btnText="Registrar venda"
         placeHolder="Digite aqui o ID da venda"
         filterEnabled
@@ -90,29 +103,21 @@ export default function Sales() {
                     <DropdownContent>
                       <DropdownItem>Mudar situação para pago</DropdownItem>
                       <DropdownItem
-                        onClick={
-                          () => {}
-                          // handleHistory({
-                          //   pathname: '/sales/add',
-                          //   data: {
-                          //     pageTitle: 'Editar venda',
-                          //     sale: el,
-                          //   },
-                          // })
-                        }
+                        onClick={() => {
+                          handleHistory({
+                            pathname: '/sales/add',
+                            data: {
+                              pageTitle: 'Editar venda',
+                              sale: el,
+                            },
+                          });
+                        }}
                       >
                         Editar venda
                       </DropdownItem>
-                      <DropdownItem type="button" onClick={() => {}}>
+                      <DropdownItem onClick={() => toggleDeleteModal(el)}>
                         Excluir venda
                       </DropdownItem>
-                      {/* <ConfirmModal
-                        isOpen={deleteModalOpen}
-                        title="Excluir venda"
-                        msg={`Deseja realmente excluir a venda de ID ${sale.idVenda}?`}
-                        btnClose={() => toggleDeleteModal(null)}
-                        btnConfirm={() => handleDelete()}
-                      /> */}
                     </DropdownContent>
                   </DropdownList>
                 </td>
@@ -120,6 +125,15 @@ export default function Sales() {
             ))}
         </tbody>
       </SalesList>
+
+      {/* Confirm delete modal */}
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        title="Excluir venda"
+        msg={`Deseja realmente excluir a venda ${sale.idVenda}?`}
+        handleClose={() => toggleDeleteModal(null)}
+        handleConfirm={() => handleDelete(sale.id)}
+      />
     </div>
   );
 }

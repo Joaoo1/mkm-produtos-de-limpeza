@@ -40,7 +40,7 @@ const BaseModal = styled(ReactModal)`
 `;
 
 const ProductModal = styled(BaseModal)`
-  height: 435px;
+  height: 420px;
 
   input#product-name {
     width: 100%;
@@ -48,12 +48,27 @@ const ProductModal = styled(BaseModal)`
 `;
 
 const ClientModal = styled(BaseModal)`
-  height: 455px;
+  height: 540px;
 
   input {
     width: 100%;
   }
+
+  .input-city-container {
+    display: flex;
+    justify-content: space-between;
+
+    div {
+      width: 100%;
+    }
+
+    div:first-child {
+      margin-right: 15px;
+    }
+  }
 `;
+
+const SaleModal = styled(BaseModal)``;
 
 const ModalButtonsContainer = styled.div`
   display: flex;
@@ -64,4 +79,4 @@ const ModalButtonsContainer = styled.div`
   }
 `;
 export default BaseModal;
-export { ProductModal, ClientModal, ModalButtonsContainer };
+export { ProductModal, ClientModal, ModalButtonsContainer, SaleModal };

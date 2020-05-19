@@ -12,29 +12,25 @@ const ClientController = {
     });
     return clients;
   },
-  // async show(id) {
-  //   const data = await Firestore.collection(COL_CLIENTS).doc(id).get();
-  //   const c = data.doc.data();
-  //   c.id = data.doc.id;
-  //   return c;
-  // },
-  create(client, setGrowl) {
+
+  create(client, growl) {
     Firestore.collection(COL_CLIENTS)
       .add(client)
       .then(
         () =>
-          setGrowl({
+          growl.show({
             severity: 'success',
             summary: 'Cliente adicionado com sucesso',
           }),
         () =>
-          setGrowl({
+          growl.show({
             severity: 'error',
             summary: `Ocorreu um erro ao adicionar cliente`,
           })
       );
   },
-  update(client, setGrowl) {
+
+  update(client, growl) {
     const query = Firestore.collection(COL_CLIENTS).doc(client.id);
 
     const c = Object.assign(client);
@@ -42,29 +38,30 @@ const ClientController = {
 
     query.update(c).then(
       () =>
-        setGrowl({
+        growl.show({
           severity: 'success',
           summary: 'Cliente atualizado com sucesso',
         }),
       () =>
-        setGrowl({
+        growl.show({
           severity: 'error',
           summary: `Ocorreu um erro ao atualizar produto`,
         })
     );
   },
-  delete(id, setGrowl) {
+
+  delete(id, growl) {
     Firestore.collection(COL_CLIENTS)
       .doc(id)
       .delete()
       .then(
         () =>
-          setGrowl({
+          growl.show({
             severity: 'success',
             summary: 'Cliente excluido com sucesso',
           }),
         () =>
-          setGrowl({
+          growl.show({
             severity: 'error',
             summary: `Ocorreu um erro ao excluir produto`,
           })

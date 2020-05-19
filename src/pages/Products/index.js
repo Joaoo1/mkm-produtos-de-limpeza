@@ -4,14 +4,14 @@ import { Checkbox } from 'primereact/checkbox';
 import {
   FiMoreVertical,
   FiX,
-  // FiChevronDown,
-  // FiChevronUp,
+  FiChevronDown,
+  FiChevronUp,
 } from 'react-icons/fi';
 
 // Styled Components
 import { ProductModal, ModalButtonsContainer } from '../../styles/modal';
 import { PrimaryButton, SecondaryButton } from '../../styles/button';
-import { CheckboxContainer } from './styles';
+import { CheckboxContainer, StockHistoryModal } from './styles';
 import {
   List as ProductList,
   DropdownContent,
@@ -40,7 +40,6 @@ export default function Products() {
   let growl = {};
 
   function setGrowlObj(el) {
-    // console.log('growl: ', el);
     growl = el;
   }
   useEffect(() => {
@@ -58,10 +57,6 @@ export default function Products() {
       manageStock: false,
       currentStock: 0,
     });
-  }
-
-  function setGrowl(severity, summary) {
-    growl.show({ severity, summary });
   }
 
   // Function used to both create and edit
@@ -99,7 +94,7 @@ export default function Products() {
     }
   }
 
-  function toogleDeleteModal(p) {
+  function toggleDeleteModal(p) {
     cleanUpProductObject();
     if (p) {
       setProduct(p);
@@ -109,15 +104,55 @@ export default function Products() {
     }
   }
 
-  async function toogleStockHistoryModal(p) {
-    // if (p) {
-    //   setProduct(p);
-    //   const stockHist = await StockHistoryController.index(p.id);
-    //   setStockHistories(stockHist);
-    //   setStockHistoryModalOpen(true);
-    // } else {
-    //   setStockHistoryModalOpen(false);
-    // }
+  async function toggleStockHistoryModal(p) {
+    if (p) {
+      setProduct(p);
+      const stockHist = await StockHistoryController.index(p.id);
+      setStockHistories(stockHist);
+      setStockHistoryModalOpen(true);
+    } else {
+      setStockHistoryModalOpen(false);
+    }
+  }
+
+  function handleStockHistoryItem(stockHistory) {
+    if (stockHistory.stockChange && stockHistory.stockAdded) {
+      return (
+        <tr id={stockHistory.id}>
+          <td>
+            <FiChevronUp size={28} color="green" />
+          </td>
+          <td>Estoque adicionado</td>
+          <td>{stockHistory.date.toDate().toLocaleString()}</td>
+          <td>{stockHistory.seller}</td>
+          <td>+{stockHistory.quantity}</td>
+        </tr>
+      );
+    }
+    if (stockHistory.isChange) {
+      return (
+        <tr>
+          <td>
+            <FiChevronDown size={28} color="red" />
+          </td>
+          <td>Estoque removido</td>
+          <td>{stockHistory.date.toDate().toLocaleString()}</td>
+          <td>{stockHistory.seller}</td>
+          <td>+{stockHistory.quantity}</td>
+        </tr>
+      );
+    }
+    return (
+      <tr>
+        <td>
+          <FiChevronDown size={28} color="red" />
+        </td>
+        <td>{`Venda ${stockHistory.saleId}`}</td>
+        <td>{stockHistory.date.toDate().toLocaleString()}</td>
+        <td>{`Cliente ${stockHistory.client}`}</td>
+        <td>{`-${stockHistory.quantity}`}</td>
+      </tr>
+    );
   }
 
   return (
@@ -126,7 +161,6 @@ export default function Products() {
 
       <ListHeader
         btnText="Cadastrar Produto"
-        // btnFunction={() => setGrowl('error', 'teste')}
         btnFunction={openModal}
         placeHolder="Digite aqui o nome do produto"
       />
@@ -158,12 +192,12 @@ export default function Products() {
 
                     <DropdownItem
                       type="button"
-                      onClick={() => toogleDeleteModal(p)}
+                      onClick={() => toggleDeleteModal(p)}
                     >
                       Excluir produto
                     </DropdownItem>
 
-                    <DropdownItem onClick={() => toogleStockHistoryModal(p)}>
+                    <DropdownItem onClick={() => toggleStockHistoryModal(p)}>
                       Visualizar histórico do estoque de {p.nome}
                     </DropdownItem>
                   </DropdownContent>
@@ -179,9 +213,10 @@ export default function Products() {
         isOpen={deleteModalOpen}
         title="Excluir produto"
         msg={`Deseja realmente excluir o produto ${product.nome}?`}
-        handleClose={() => toogleDeleteModal(null)}
+        handleClose={() => toggleDeleteModal(null)}
         handleConfirm={() => handleDelete(product.id)}
       />
+
       {/* Add/Edit modal */}
       <ProductModal
         isOpen={modalOpen}
@@ -237,28 +272,27 @@ export default function Products() {
       </ProductModal>
 
       {/* StockHistory modal */}
-      <ProductModal
+      <StockHistoryModal
         isOpen={stockHistoryModalOpen}
-        onRequestClose={() => toogleStockHistoryModal(null)}
+        onRequestClose={() => toggleStockHistoryModal(null)}
         closeTimeoutMS={0}
-        className="modal modal-stock-history"
         overlayClassName="modal-overlay"
       >
-        <div className="header d-flex-between">
+        <div className="header">
           <p>Historico de estoque de {product.nome}</p>
           <FiX
             size={24}
             color="#837B7B"
-            onClick={() => toogleStockHistoryModal(null)}
+            onClick={() => toggleStockHistoryModal(null)}
           />
         </div>
         <hr />
         <table>
           <tbody>
-            {/* {stockHistories.map(doc => handleStockHistoryItem(doc))} */}
+            {stockHistories.map(doc => handleStockHistoryItem(doc))}
           </tbody>
         </table>
-      </ProductModal>
+      </StockHistoryModal>
     </div>
   );
 }
