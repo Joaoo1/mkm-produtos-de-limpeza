@@ -4,6 +4,7 @@ import Routes from './routes';
 import GlobalStyles from './styles/global';
 import 'primereact/resources/themes/nova-light/theme.css';
 import 'primereact/resources/primereact.min.css';
+import 'primeflex/primeflex.css';
 
 import AuthProvider from './helpers/AuthProvider';
 

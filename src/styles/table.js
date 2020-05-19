@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import { BaseButton } from './button';
 
-export const List = styled.table`
+const List = styled.table`
   min-width: 770px;
   width: 100%;
   overflow: scroll;
@@ -46,12 +46,12 @@ export const List = styled.table`
   }
 `;
 
-export const DropdownList = styled.div`
+const DropdownList = styled.div`
   position: relative;
   display: inline-block;
 `;
 
-export const DropdownContent = styled.div`
+const DropdownContent = styled.div`
   display: none;
   position: absolute;
   top: 2;
@@ -62,7 +62,7 @@ export const DropdownContent = styled.div`
   z-index: 1;
 `;
 
-export const DropdownItem = styled(BaseButton)`
+const DropdownItem = styled(BaseButton)`
   background-color: transparent;
   width: 100%;
   border: none;
@@ -73,3 +73,5 @@ export const DropdownItem = styled(BaseButton)`
     background-color: rgba(6, 193, 255, 0.45);
   }
 `;
+
+export { List, DropdownContent, DropdownItem, DropdownList };
