@@ -1,12 +1,8 @@
 import styled from 'styled-components';
 import { BaseButton } from './button';
 
-<<<<<<< HEAD
-export const List = styled.table`
-=======
 const List = styled.table`
   min-width: 770px;
->>>>>>> d8ce1ba18720e301cbe3396056e6e991b3fe93b0
   width: 100%;
   overflow: scroll;
   border-collapse: separate;

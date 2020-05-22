@@ -3,9 +3,9 @@ import { List } from '../../styles/table';
 
 const TopSellingProducts = styled(List)`
   padding: 5px 12px;
-  min-width: 300px !important;
-  max-width: 400px;
-
+  height: 25%;
+  min-width: 340px;
+  width: 100%;
   td ~ td {
     width: 35%;
   }
@@ -22,10 +22,9 @@ const CardContainer = styled.div`
 const Card = styled.div`
   background: rgba(6, 193, 255, 0.16);
   background-color: #45afed;
-  /* background-color: #4591ed; */
   color: #fff;
   height: 120px;
-  border-radius: 3px;
+  border-radius: 6px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -51,10 +50,26 @@ const Card = styled.div`
   }
 `;
 
-const ChartContainer = styled.div`
+const SalesChartContainer = styled.div`
   padding: 30px;
   border: 1px solid rgba(0, 73, 98, 0.2);
   margin: 30px 0;
+  border-radius: 6px;
 `;
 
-export { TopSellingProducts, CardContainer, Card, ChartContainer };
+const ClientsChartContainer = styled.div`
+  > div {
+    border: 1px solid rgba(0, 73, 98, 0.2);
+    margin: 30px 0;
+    border-radius: 6px;
+    padding: 15px;
+  }
+`;
+
+export {
+  TopSellingProducts,
+  CardContainer,
+  Card,
+  SalesChartContainer,
+  ClientsChartContainer,
+};

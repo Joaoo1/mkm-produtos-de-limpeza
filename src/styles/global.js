@@ -3,7 +3,7 @@ import { createGlobalStyle } from 'styled-components';
 export default createGlobalStyle`
 
 :root{
-    --heigth-button: 46px;
+    --height-button: 46px;
     --width-button-modal: 180px;
     --primary-font-color: #004A62;
     --primary-color: #06C1FF;
@@ -32,7 +32,7 @@ export default createGlobalStyle`
     border: 1px solid rgba(0, 169, 225, 0.20) !important;
     padding-left: 20px;
     font-size: 16px;
-    height: var(--heigth-button);
+    height: var(--height-button);
   }
 
   button:hover {

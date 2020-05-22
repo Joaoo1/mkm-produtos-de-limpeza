@@ -10,7 +10,7 @@ const BaseButton = styled.button`
   align-items: center;
   border-radius: 5px;
   font: 500 18px 'Roboto Slab', sans-serif;
-  height: var(--heigth-button);
+  height: var(--height-button);
 `;
 
 const PrimaryButton = styled(BaseButton)`

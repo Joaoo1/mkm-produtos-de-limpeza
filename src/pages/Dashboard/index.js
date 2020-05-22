@@ -6,7 +6,8 @@ import {
   TopSellingProducts,
   CardContainer,
   Card,
-  ChartContainer,
+  SalesChartContainer,
+  ClientsChartContainer,
 } from './styles';
 
 export default function Dashboard() {
@@ -98,43 +99,60 @@ export default function Dashboard() {
         </Card>
       </CardContainer>
 
-      <ChartContainer>
+      <ClientsChartContainer className="p-grid p-justify-around">
+        <div>
+          <h2>Novos clientes nos ultimos 3 meses</h2>
+          <Chart
+            type="line"
+            data={clientChartData}
+            className="p-col-12 p-lg-7"
+            height={350}
+            width={700}
+          />
+        </div>
+        <div className="p-col-12 p-lg-5">
+          <h2>Produtos mais vendidos</h2>
+          <TopSellingProducts>
+            <thead>
+              <tr>
+                <th>Produtos</th>
+                <th>Quantidade vendida</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Detergente neutro</td>
+                <td>980</td>
+              </tr>
+              <tr>
+                <td>Detergente neutro</td>
+                <td>980</td>
+              </tr>
+              <tr>
+                <td>Detergente neutro</td>
+                <td>980</td>
+              </tr>
+              <tr>
+                <td>Detergente neutro</td>
+                <td>980</td>
+              </tr>
+              <tr>
+                <td>Detergente neutro</td>
+                <td>980</td>
+              </tr>
+              <tr>
+                <td>Detergente neutro</td>
+                <td>980</td>
+              </tr>
+            </tbody>
+          </TopSellingProducts>
+        </div>
+      </ClientsChartContainer>
+
+      <SalesChartContainer>
         <h2>Vendas realizadas nos ultimos 12 meses</h2>
         <Chart type="bar" data={salesChartData} options={salesChartOptions} />
-      </ChartContainer>
-      <div>
-        <Chart type="line" data={clientChartData} />
-        <TopSellingProducts>
-          <thead>
-            <tr>
-              <th>Produtos</th>
-              <th>Quantidade vendida</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Detergente neutro</td>
-              <td>980</td>
-            </tr>
-            <tr>
-              <td>Detergente neutro</td>
-              <td>980</td>
-            </tr>
-            <tr>
-              <td>Detergente neutro</td>
-              <td>980</td>
-            </tr>
-            <tr>
-              <td>Detergente neutro</td>
-              <td>980</td>
-            </tr>
-            <tr>
-              <td>Detergente neutro</td>
-              <td>980</td>
-            </tr>
-          </tbody>
-        </TopSellingProducts>
-      </div>
+      </SalesChartContainer>
     </>
   );
 }
