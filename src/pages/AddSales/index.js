@@ -3,12 +3,26 @@ import { FiArrowLeft, FiUserPlus, FiXCircle } from 'react-icons/fi';
 import { AutoComplete } from 'primereact/autocomplete';
 import { RadioButton } from 'primereact/radiobutton';
 import { Checkbox } from 'primereact/checkbox';
+import { InputText } from 'primereact/inputtext';
 import { Header, Form, Values } from './styles';
 import { PrimaryButton } from '../../styles/button';
 
 export default function AddSales() {
   const [productsSuggestions, setProductSuggestions] = useState([]);
-  const [paymentMethod, setPaymentMethod] = useState('unpaid');
+
+  const [sale, setSale] = useState({
+    paymentMethod: 'unpaid',
+    hasDiscount: false,
+    products: [],
+    client: {},
+  });
+
+  const [values, setValues] = useState({
+    totalProducts: '0.00',
+    totalPaid: '0.00',
+    discount: '0.00',
+    total: '0.00',
+  });
 
   // FIXME: Prevent AutoComplete from clearing its values automatically
   const [product, setProduct] = useState('');
@@ -32,7 +46,7 @@ export default function AddSales() {
   }
 
   function test() {
-    console.log(paymentMethod);
+    console.log(sale, values);
   }
 
   return (
@@ -46,8 +60,9 @@ export default function AddSales() {
       </Header>
       <Form className="p-col-12 p-xl-6">
         <div>
-          <p>Produtos</p>
+          <h4>Produtos</h4>
           <AutoComplete
+            id="products"
             dropdown
             value={product}
             onChange={e => setProduct(e.target.value)}
@@ -106,9 +121,14 @@ export default function AddSales() {
           </tbody>
         </table>
         <div>
-          <p>Cliente</p>
+          <h4>Cliente</h4>
           <div className="p-grid p-nogutter p-align-center">
-            <input type="text" placeholder="Selecione um cliente" disabled />
+            <InputText
+              id="clients"
+              type="text"
+              placeholder="Selecione um cliente"
+              disabled
+            />
             <button type="button">
               <FiUserPlus size="32" color="#fff" />
             </button>
@@ -116,43 +136,99 @@ export default function AddSales() {
         </div>
 
         <div>
-          <p>Formas de pagamento</p>
+          <h4>Formas de pagamento</h4>
           <div className="p-grid p-nogutter p-align-center p-justify-between">
-            <div>
+            <label>
               <RadioButton
                 value="unpaid"
                 name="payment"
-                onChange={e => setPaymentMethod(e.target.value)}
-                checked={paymentMethod === 'unpaid'}
+                onChange={e =>
+                  setSale({ ...sale, paymentMethod: e.target.value })
+                }
+                checked={sale.paymentMethod === 'unpaid'}
               />
               Não Pago
-            </div>
-            <div>
+            </label>
+            <label>
               <RadioButton
                 value="paid"
                 name="payment"
-                onChange={e => setPaymentMethod(e.target.value)}
-                checked={paymentMethod === 'paid'}
+                onChange={e =>
+                  setSale({ ...sale, paymentMethod: e.target.value })
+                }
+                checked={sale.paymentMethod === 'paid'}
               />
               Pago
-            </div>
-            <div>
+            </label>
+            <label>
               <RadioButton
                 value="partially"
                 name="payment"
-                onChange={e => setPaymentMethod(e.target.value)}
-                checked={paymentMethod === 'partially'}
+                onChange={e =>
+                  setSale({ ...sale, paymentMethod: e.target.value })
+                }
+                checked={sale.paymentMethod === 'partially'}
               />
               Parcialmente pago
-            </div>
+            </label>
           </div>
         </div>
 
-        <div className="p-grid">
-          <Checkbox />
+        <div>
+          <label className="p-grid p-nogutter">
+            <Checkbox
+              inputId="cb1"
+              value="discount"
+              checked={sale.hasDiscount}
+              onChange={e => setSale({ ...sale, hasDiscount: e.checked })}
+            />
+            Conceder desconto
+          </label>
+
+          <InputText
+            id="discount"
+            disabled={!sale.hasDiscount}
+            keyfilter="pnum"
+            value={values.discount}
+            onChange={e => setValues({ ...values, discount: e.target.value })}
+          />
         </div>
       </Form>
-      <Values className="p-col-12 p-xl-6">3</Values>
+      <Values className="p-col-12 p-xl-6">
+        <table>
+          <tbody>
+            <tr>
+              <td>
+                <p>Produtos:</p>
+              </td>
+              <td>{`R$${values.totalProducts}`}</td>
+            </tr>
+            <tr>
+              <td>
+                <p>Valor Pago:</p>
+              </td>
+              <td>{`R$${values.totalPaid}`}</td>
+            </tr>
+            <tr>
+              <td>
+                <p>Desconto:</p>
+              </td>
+              <td>{`R$${values.discount}`}</td>
+            </tr>
+            <tr>
+              <td colSpan="2">
+                <hr />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <p>Total:</p>
+              </td>
+              <td>{`R$${values.total}`}</td>
+            </tr>
+          </tbody>
+        </table>
+      </Values>
     </div>
   );
 }

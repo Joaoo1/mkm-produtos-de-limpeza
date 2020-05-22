@@ -31,5 +31,8 @@ module.exports = {
     "react/jsx-one-expression-per-line": "off",
     "arrow-parens": "off",
     "no-shadow": "off",
+    "jsx-a11y/label-has-associated-control": [2, {
+      "controlComponents": ["Checkbox","RadioButton"],
+    }]
   },
 };

@@ -2,13 +2,14 @@ import { createGlobalStyle } from 'styled-components';
 
 export default createGlobalStyle`
 
-:root{
+  :root{
     --height-button: 46px;
     --width-button-modal: 180px;
     --primary-font-color: #004A62;
     --primary-color: #06C1FF;
     --main-table-border-radius: 10px;
-}
+  }
+
   *{
     margin: 0;
     padding: 0;
@@ -42,13 +43,13 @@ export default createGlobalStyle`
     box-shadow:         inset 0 0 12px #0000002c;
   }
 
-  ::placeholder {
+  ::placeholder, .p-autocomplete input::placeholder {
     opacity: 0.8;
     font-weight: 300;
   }
 
 /* Modal */ 
-.modal-overlay {
+  .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -59,11 +60,11 @@ export default createGlobalStyle`
     transition: opacity 450ms ease-in-out;
   }
   
-.ReactModal__Overlay--after-open{
+  .ReactModal__Overlay--after-open{
     opacity: 1;
-}
+  }
 
-.ReactModal__Overlay--before-close{
+  .ReactModal__Overlay--before-close{
     opacity: 0;
-}
+  }
 `;

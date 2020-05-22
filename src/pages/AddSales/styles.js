@@ -20,12 +20,16 @@ const Header = styled.div`
 const Form = styled.div`
   font-weight: 400;
 
-  input[type='text'] {
-    width: 80%;
+  span#products input {
+    width: 90%;
+  }
 
-    ::placeholder {
-      font-size: 14px;
-    }
+  input#clients {
+    width: calc(90% - 12px);
+  }
+
+  input#discount {
+    width: 50%;
   }
 
   table {
@@ -34,8 +38,7 @@ const Form = styled.div`
     border-spacing: 0;
     font-weight: 500;
     margin-top: 10px;
-    max-width: 513px;
-    width: 87%;
+    width: 90%;
 
     td {
       border-bottom: 1px solid rgba(0, 0, 0, 0.15);
@@ -83,7 +86,7 @@ const Form = styled.div`
   > div {
     display: flex;
     flex-direction: column;
-    padding-top: 10px;
+    padding-top: 30px;
 
     button {
       background-color: #007ad9;
@@ -92,9 +95,8 @@ const Form = styled.div`
       border-radius: 3px;
     }
 
-    p {
+    h4 {
       margin-bottom: 5px;
-      margin-top: 20px;
     }
   }
 
@@ -102,25 +104,32 @@ const Form = styled.div`
     margin-left: 20px;
   }
 
-  .p-radiobutton {
+  .p-radiobutton,
+  .p-checkbox {
     margin-right: 5px;
+  }
+
+  .p-checkbox {
+    margin-bottom: 10px;
   }
 
   /* Autocomplete icon */
   .p-button {
     height: 46px;
   }
-
-  .p-autocomplete {
-    width: 100%;
-    input {
-      padding-left: 15px;
-    }
-  }
 `;
 
 const Values = styled.div`
-  background-color: #f2f3f2;
+  padding-top: 30px;
+  margin-top: 30px;
+  table {
+    float: right;
+    font-size: 24px;
+    margin: 0 20px 30px 0;
+    td:first-child p {
+      margin-right: 15px;
+    }
+  }
 `;
 
 export { Header, Form, Values };
