@@ -19,7 +19,7 @@ import ClientController from '../../controllers/ClientController';
 
 export default function Clients() {
   ClientModal.setAppElement('#root');
-  const history = useHistory();
+  // const history = useHistory();
   const [modalTitle, setModalTitle] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);

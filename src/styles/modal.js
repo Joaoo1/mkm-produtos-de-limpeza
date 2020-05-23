@@ -78,5 +78,77 @@ const ModalButtonsContainer = styled.div`
     margin-left: 15px;
   }
 `;
+
+const SelectClientModal = styled(BaseModal)`
+  width: 520px;
+  table {
+    border: 1px solid #d6d6d6;
+    border-radius: 6px;
+    border-spacing: 0;
+    font-weight: 500;
+    margin-top: 10px;
+    width: 100%;
+
+    tr {
+      :hover {
+        td {
+          background-color: #d2ddf7;
+        }
+      }
+    }
+
+    td {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+      padding: 10px 0;
+    }
+
+    /* Remove bottom border from last child because of table border radius */
+    tr:last-child {
+      td {
+        border: none;
+      }
+    }
+
+    th {
+      padding: 5px 0;
+    }
+
+    th {
+      background-color: rgba(0, 73, 98, 0.15);
+      text-align: start;
+    }
+
+    th:first-child {
+      border-top-left-radius: 6px;
+      padding-left: 15px;
+    }
+
+    th:last-child {
+      border-top-right-radius: 6px;
+    }
+
+    td:first-child {
+      padding: 0 15px;
+    }
+
+    td:last-child {
+      svg {
+        margin: 5px 10px;
+        float: right;
+      }
+    }
+  }
+
+  .p-inputtext {
+    width: 100%;
+  }
+`;
+
 export default BaseModal;
-export { ProductModal, ClientModal, ModalButtonsContainer, SaleModal };
+export {
+  ProductModal,
+  ClientModal,
+  ModalButtonsContainer,
+  SaleModal,
+  SelectClientModal,
+};
