@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useHistory } from 'react-router-dom';
-import { FiMoreVertical, FiX, FiEdit, FiCheck } from 'react-icons/fi';
+import { FiMoreVertical, FiX } from 'react-icons/fi';
 import { Growl } from 'primereact/growl';
 
-import { ClientModal, ModalButtonsContainer } from '../../styles/modal';
+import PurchasesMadeModal, {
+  ClientModal,
+  ModalButtonsContainer,
+} from '../../styles/modal';
 import { PrimaryButton, SecondaryButton } from '../../styles/button';
 import {
   DropdownContent,
@@ -12,6 +14,8 @@ import {
   List as ClientList,
 } from '../../styles/table';
 
+import { PurchasesMadeList } from './styles';
+
 import ListHeader from '../../components/ListHeader';
 import ConfirmModal from '../../components/ConfirmModal';
 
@@ -19,11 +23,12 @@ import ClientController from '../../controllers/ClientController';
 
 export default function Clients() {
   ClientModal.setAppElement('#root');
-  // const history = useHistory();
   const [modalTitle, setModalTitle] = useState('');
-  const [modalOpen, setModalOpen] = useState(false);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [purchasesModalOpen, setPurchasesModalOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState({
+    addEditModal: false,
+    deleteModal: false,
+    purchasesMadeModal: false,
+  });
   const [client, setClient] = useState({});
   const [clientList, setClientList] = useState([]);
   let growl = {};
@@ -55,23 +60,23 @@ export default function Clients() {
   function handleSave(isUpdate) {
     if (isUpdate) {
       ClientController.update(client, growl);
-      setModalOpen(false);
+      setModalOpen({ ...modalOpen, addEditModal: false });
     } else {
       ClientController.create(client, growl);
       cleanUpClientObject();
-      setModalOpen(false);
+      setModalOpen({ ...modalOpen, addEditModal: false });
     }
   }
 
   function handleDelete(id) {
     ClientController.delete(id, growl);
-    setDeleteModalOpen(false);
+    setModalOpen({ ...modalOpen, deleteModal: false });
   }
 
   // Modal functions
   function closeModal() {
-    /* TODO: Check if is data to save
-     * {...}
+    /**
+     * TODO: Check if is data to save
      */
 
     setModalOpen(false);
@@ -82,11 +87,11 @@ export default function Clients() {
     // If client is null add a new one, otherwise edit
     if (!c) {
       setModalTitle('Cadastrar novo cliente');
-      setModalOpen(true);
+      setModalOpen({ ...modalOpen, addEditModal: true });
     } else {
       setModalTitle('Editar Cliente');
       setClient(c);
-      setModalOpen(true);
+      setModalOpen({ ...modalOpen, addEditModal: true });
     }
   }
 
@@ -94,9 +99,9 @@ export default function Clients() {
     cleanUpClientObject();
     if (c) {
       setClient(c);
-      setDeleteModalOpen(true);
+      setModalOpen({ ...modalOpen, deleteModal: true });
     } else {
-      setDeleteModalOpen(false);
+      setModalOpen({ ...modalOpen, deleteModal: false });
     }
   }
 
@@ -104,10 +109,15 @@ export default function Clients() {
     cleanUpClientObject();
     if (c) {
       setClient(c);
-      setPurchasesModalOpen(!purchasesModalOpen);
+      setModalOpen({ ...modalOpen, purchasesMadeModal: true });
     } else {
-      setPurchasesModalOpen(false);
+      setModalOpen({ ...modalOpen, purchasesMadeModal: true });
     }
+  }
+
+  function handleClosePurchasesModal() {
+    cleanUpClientObject();
+    setModalOpen({ ...modalOpen, purchasesMadeModal: false });
   }
   return (
     <div>
@@ -164,7 +174,7 @@ export default function Clients() {
 
       {/* Add/edit modal */}
       <ClientModal
-        isOpen={modalOpen}
+        isOpen={modalOpen.addEditModal}
         onRequestClose={closeModal}
         closeTimeoutMS={450}
         overlayClassName="modal-overlay"
@@ -234,12 +244,51 @@ export default function Clients() {
 
       {/* Confirm delete modal */}
       <ConfirmModal
-        isOpen={deleteModalOpen}
+        isOpen={modalOpen.deleteModal}
         title="Excluir cliente"
         msg={`Deseja realmente excluir o cliente ${client.nome}?`}
         handleClose={() => toogleDeleteModal(null)}
         handleConfirm={() => handleDelete(client.id)}
       />
+
+      {/* Purchases made modal */}
+      <PurchasesMadeModal
+        isOpen={modalOpen.purchasesMadeModal}
+        onRequestClose={handleClosePurchasesModal}
+        overlayClassName="modal-overlay"
+      >
+        <header className="p-grid p-nogutter p-justify-between">
+          <h2>{`Compras feitas por ${client.nome}`}</h2>
+          <FiX size={28} onClick={handleClosePurchasesModal} />
+        </header>
+        <hr />
+        <PurchasesMadeList>
+          <thead>
+            <tr>
+              <th>ID da Venda</th>
+              <th>Data</th>
+              <th>Valor Total</th>
+              <th>Situação</th>
+              <th>Produtos</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>9999</td>
+              <td>10/02/2020</td>
+              <td>R$20.00</td>
+              <td>NÃO PAGO</td>
+              <td>
+                <div className="p-grid p-dir-col">
+                  <p>1x Desifentante</p>
+                  <p>2x Desifentante</p>
+                  <p>1x Amaciante</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </PurchasesMadeList>
+      </PurchasesMadeModal>
     </div>
   );
 }

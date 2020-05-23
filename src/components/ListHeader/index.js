@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Calendar } from 'primereact/calendar';
-import { Growl } from 'primereact/growl';
 import { Checkbox } from 'primereact/checkbox';
 import { FiPlus, FiFilter } from 'react-icons/fi';
 
@@ -10,7 +9,6 @@ import {
   AddButton,
   ListHeaderContainer,
   FilterContainer,
-  Period,
 } from './styles';
 
 const propTypes = {

@@ -11,7 +11,7 @@ import { SelectClientModal } from '../../styles/modal';
 
 export default function AddSales() {
   SelectClientModal.setAppElement('#root');
-  const [selectClientModalIsOpen, setSelectClientModalOpen] = useState(true);
+  const [selectClientModalIsOpen, setSelectClientModalOpen] = useState(false);
   const [productsSuggestions, setProductSuggestions] = useState([]);
 
   const [sale, setSale] = useState({
@@ -53,7 +53,7 @@ export default function AddSales() {
     console.log(sale, values);
   }
 
-  function onCloseSelectClientModal() {
+  function handleCloseSelectClientModal() {
     setSelectClientModalOpen(false);
   }
 
@@ -61,13 +61,13 @@ export default function AddSales() {
     <>
       <SelectClientModal
         isOpen={selectClientModalIsOpen}
-        onRequestClose={onCloseSelectClientModal}
+        onRequestClose={handleCloseSelectClientModal}
         closeTimeoutMS={450}
         overlayClassName="modal-overlay"
       >
         <header className="p-grid p-nogutter p-justify-between">
           <h2>Selecione um cliente</h2>
-          <FiX size={28} onClick={onCloseSelectClientModal} />
+          <FiX size={28} onClick={handleCloseSelectClientModal} />
         </header>
 
         <hr />
