@@ -106,8 +106,8 @@ export default function Dashboard() {
             type="line"
             data={clientChartData}
             className="p-col-12 p-lg-7"
-            height={350}
-            width={700}
+            height="350px"
+            width="750px"
           />
         </div>
         <div className="p-col-12 p-lg-5">

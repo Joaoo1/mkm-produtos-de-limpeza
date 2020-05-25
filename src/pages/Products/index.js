@@ -28,20 +28,23 @@ import ProductController from '../../controllers/ProductController';
 import StockHistoryController from '../../controllers/StockHistoryController';
 
 export default function Products() {
-  ProductModal.setAppElement('#root');
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalTitle, setModalTitle] = useState('');
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [stockHistoryModalOpen, setStockHistoryModalOpen] = useState(false);
-  const [stockHistories, setStockHistories] = useState([]);
-  const [product, setProduct] = useState({});
-  const [productList, setProductList] = useState([]);
-
   let growl = {};
 
   function setGrowlObj(el) {
     growl = el;
   }
+
+  ProductModal.setAppElement('#root');
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalOpen, setModalOpen] = useState({
+    addEditModal: false,
+    deleteModal: false,
+    stockHistoryModal: false,
+  });
+  const [stockHistories, setStockHistories] = useState([]);
+  const [product, setProduct] = useState({});
+  const [productList, setProductList] = useState([]);
+
   useEffect(() => {
     async function fetchProducts() {
       const products = await ProductController.index();
@@ -67,40 +70,40 @@ export default function Products() {
     } else {
       ProductController.create(product, growl);
       cleanUpProductObject();
+      setModalOpen({ ...modalOpen, addEditModal: false });
     }
   }
 
   function handleDelete(id) {
     ProductController.delete(id, growl);
-    setDeleteModalOpen(false);
+    setModalOpen({ ...modalOpen, deleteModal: false });
   }
 
   // Modal functions
   function closeModal() {
     // TODO: Check if there is data to save
-    setModalOpen(false);
+    setModalOpen({ ...modalOpen, addEditModal: false });
   }
 
-  function openModal(p) {
-    // If Product is {} add a new one, otherwise edit
-    if (!p) {
-      cleanUpProductObject();
-      setModalTitle('Cadastrar novo Produto');
-      setModalOpen(true);
-    } else {
-      setModalTitle('Editar Produto');
-      setProduct(p);
-      setModalOpen(true);
-    }
+  function openAddModal() {
+    cleanUpProductObject();
+    setModalTitle('Cadastrar novo Produto');
+    setModalOpen({ ...modalOpen, addEditModal: true });
+  }
+
+  function openEditModal(p) {
+    setModalTitle('Editar Produto');
+    setProduct(p);
+    setModalOpen({ ...modalOpen, addEditModal: true });
   }
 
   function toggleDeleteModal(p) {
     cleanUpProductObject();
     if (p) {
       setProduct(p);
-      setDeleteModalOpen(true);
+      setModalOpen({ ...modalOpen, deleteModal: true });
     } else {
-      setDeleteModalOpen(false);
+      setModalOpen({ ...modalOpen, deleteModal: false });
     }
   }
 
@@ -109,9 +112,9 @@ export default function Products() {
       setProduct(p);
       const stockHist = await StockHistoryController.index(p.id);
       setStockHistories(stockHist);
-      setStockHistoryModalOpen(true);
+      setModalOpen({ ...modalOpen, stockHistoryModal: true });
     } else {
-      setStockHistoryModalOpen(false);
+      setModalOpen({ ...modalOpen, stockHistoryModal: false });
     }
   }
 
@@ -129,7 +132,7 @@ export default function Products() {
         </tr>
       );
     }
-    if (stockHistory.isChange) {
+    if (stockHistory.stockChange) {
       return (
         <tr>
           <td>
@@ -142,15 +145,25 @@ export default function Products() {
         </tr>
       );
     }
+    if (!stockHistory.stockChange) {
+      return (
+        <tr>
+          <td>
+            <FiChevronDown size={28} color="red" />
+          </td>
+          <td>{`Venda ${stockHistory.saleId}`}</td>
+          <td>{stockHistory.date.toDate().toLocaleString()}</td>
+          <td>{`Cliente ${stockHistory.client}`}</td>
+          <td>{`-${stockHistory.quantity}`}</td>
+        </tr>
+      );
+    }
+
     return (
       <tr>
         <td>
-          <FiChevronDown size={28} color="red" />
+          <h2>Ocorreu um erro com este item</h2>
         </td>
-        <td>{`Venda ${stockHistory.saleId}`}</td>
-        <td>{stockHistory.date.toDate().toLocaleString()}</td>
-        <td>{`Cliente ${stockHistory.client}`}</td>
-        <td>{`-${stockHistory.quantity}`}</td>
       </tr>
     );
   }
@@ -161,7 +174,7 @@ export default function Products() {
 
       <ListHeader
         btnText="Cadastrar Produto"
-        btnFunction={openModal}
+        btnFunction={openAddModal}
         placeHolder="Digite aqui o nome do produto"
       />
       <ProductList>
@@ -169,24 +182,25 @@ export default function Products() {
           <tr>
             <th>Nome</th>
             <th>Preço</th>
-            <th>Qtd em estoque</th>
-            <th> </th>
+            <th colSpan="2">Qtd em estoque</th>
           </tr>
         </thead>
         <tbody>
           {productList.map(p => (
             <tr key={p.id}>
               <td>{p.nome}</td>
-              <td>
-                R$
-                {p.preco}
-              </td>
+              <td>{`R$${p.preco}`}</td>
+
               {p.manageStock ? <td>{p.currentStock}</td> : <td>0</td>}
+
               <td className="more-icon">
                 <DropdownList>
                   <FiMoreVertical size={24} />
                   <DropdownContent>
-                    <DropdownItem onClick={() => openModal(p)}>
+                    <DropdownItem
+                      type="button"
+                      onClick={() => openEditModal(p)}
+                    >
                       Editar produto
                     </DropdownItem>
 
@@ -197,7 +211,10 @@ export default function Products() {
                       Excluir produto
                     </DropdownItem>
 
-                    <DropdownItem onClick={() => toggleStockHistoryModal(p)}>
+                    <DropdownItem
+                      type="button"
+                      onClick={() => toggleStockHistoryModal(p)}
+                    >
                       Visualizar histórico do estoque de {p.nome}
                     </DropdownItem>
                   </DropdownContent>
@@ -210,16 +227,16 @@ export default function Products() {
 
       {/* Confirm delete modal */}
       <ConfirmModal
-        isOpen={deleteModalOpen}
+        isOpen={modalOpen.deleteModal}
         title="Excluir produto"
         msg={`Deseja realmente excluir o produto ${product.nome}?`}
-        handleClose={() => toggleDeleteModal(null)}
+        handleClose={() => toggleDeleteModal()}
         handleConfirm={() => handleDelete(product.id)}
       />
 
       {/* Add/Edit modal */}
       <ProductModal
-        isOpen={modalOpen}
+        isOpen={modalOpen.addEditModal}
         onRequestClose={closeModal}
         closeTimeoutMS={450}
         overlayClassName="modal-overlay"
@@ -273,17 +290,17 @@ export default function Products() {
 
       {/* StockHistory modal */}
       <StockHistoryModal
-        isOpen={stockHistoryModalOpen}
-        onRequestClose={() => toggleStockHistoryModal(null)}
+        isOpen={modalOpen.stockHistoryModal}
+        onRequestClose={() => toggleStockHistoryModal()}
         closeTimeoutMS={0}
         overlayClassName="modal-overlay"
       >
         <div className="header">
-          <p>Historico de estoque de {product.nome}</p>
+          <p>Histórico de estoque de {product.nome}</p>
           <FiX
             size={24}
             color="#837B7B"
-            onClick={() => toggleStockHistoryModal(null)}
+            onClick={() => toggleStockHistoryModal()}
           />
         </div>
         <hr />

@@ -144,6 +144,10 @@ const SelectClientModal = styled(BaseModal)`
   }
 `;
 
+const PurchasesMadeModal = styled(BaseModal)`
+  width: 700px;
+`;
+
 export default BaseModal;
 export {
   ProductModal,
@@ -151,4 +155,5 @@ export {
   ModalButtonsContainer,
   SaleModal,
   SelectClientModal,
+  PurchasesMadeModal,
 };

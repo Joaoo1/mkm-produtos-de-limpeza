@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { FiMoreVertical, FiX } from 'react-icons/fi';
+import { FiMoreVertical, FiX, FiCheckSquare, FiEdit } from 'react-icons/fi';
 import { Growl } from 'primereact/growl';
 
-import PurchasesMadeModal, {
+import {
+  PurchasesMadeModal,
   ClientModal,
   ModalButtonsContainer,
 } from '../../styles/modal';
@@ -269,7 +270,7 @@ export default function Clients() {
               <th>Data</th>
               <th>Valor Total</th>
               <th>Situação</th>
-              <th>Produtos</th>
+              <th colSpan="2">Produtos</th>
             </tr>
           </thead>
           <tbody>
@@ -283,6 +284,17 @@ export default function Clients() {
                   <p>1x Desifentante</p>
                   <p>2x Desifentante</p>
                   <p>1x Amaciante</p>
+                </div>
+              </td>
+              <td>
+                <div className="p-grid p-dir-col p-justify-around p-nogutter">
+                  <FiCheckSquare
+                    size={26}
+                    color="green"
+                    title="Mudar situação para pago"
+                  />
+                  <br />
+                  <FiEdit size={24} title="Editar venda" />
                 </div>
               </td>
             </tr>
