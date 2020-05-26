@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Calendar } from 'primereact/calendar';
 import { Checkbox } from 'primereact/checkbox';
+import { InputText } from 'primereact/inputtext';
 import { FiPlus, FiFilter } from 'react-icons/fi';
 
 import {
@@ -14,6 +15,7 @@ import {
 const propTypes = {
   btnText: PropTypes.string.isRequired,
   btnFunction: PropTypes.func.isRequired,
+  filterList: PropTypes.func.isRequired,
   filterEnabled: PropTypes.bool,
   placeHolder: PropTypes.string,
 };
@@ -26,6 +28,7 @@ const defaultProps = {
 export default function ListHeader({
   btnText,
   btnFunction,
+  filterList,
   filterEnabled,
   placeHolder,
 }) {
@@ -40,7 +43,7 @@ export default function ListHeader({
   return (
     <>
       <ListHeaderContainer>
-        <input placeholder={placeHolder} />
+        <InputText placeholder={placeHolder} onChange={e => filterList(e)} />
 
         {filterEnabled ? (
           <FilterButton onClick={() => setShowFilter(!showFilter)}>

@@ -7,11 +7,12 @@ const ListHeaderContainer = styled.div`
   align-items: center;
   margin: 30px 0;
 
-  input {
+  .p-inputtext {
     margin: 0 5px;
     border-radius: 20px;
     width: 100%;
     min-width: 300px;
+    padding-left: 20px;
   }
 `;
 

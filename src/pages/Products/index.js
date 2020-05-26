@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Growl } from 'primereact/growl';
 import { Checkbox } from 'primereact/checkbox';
 import {
@@ -28,11 +28,7 @@ import ProductController from '../../controllers/ProductController';
 import StockHistoryController from '../../controllers/StockHistoryController';
 
 export default function Products() {
-  let growl = {};
-
-  function setGrowlObj(el) {
-    growl = el;
-  }
+  const growl = useRef(null);
 
   ProductModal.setAppElement('#root');
   const [modalTitle, setModalTitle] = useState('');
@@ -44,6 +40,7 @@ export default function Products() {
   const [stockHistories, setStockHistories] = useState([]);
   const [product, setProduct] = useState({});
   const [productList, setProductList] = useState([]);
+  const [filteredList, setFilteredList] = useState([]);
 
   async function fetchProducts() {
     const products = await ProductController.index();
@@ -51,16 +48,30 @@ export default function Products() {
   }
 
   useEffect(() => {
-    fetchProducts();
+    async function init() {
+      const products = await ProductController.index();
+      setProductList(products);
+      setFilteredList(products);
+    }
+    init();
   }, []);
 
   function cleanUpProductObject() {
     setProduct({
-      nome: '',
-      preco: '',
+      name: '',
+      newName: '',
+      price: '',
       manageStock: false,
       currentStock: 0,
     });
+  }
+
+  function filterList(event) {
+    setFilteredList(
+      productList.filter(prod =>
+        prod.name.toLowerCase().includes(event.target.value.toLowerCase())
+      )
+    );
   }
 
   // Modal functions
@@ -80,10 +91,10 @@ export default function Products() {
     setModalOpen({ ...modalOpen, addEditModal: true });
   }
 
-  function toggleDeleteModal(p) {
+  function toggleDeleteModal(p, index) {
     cleanUpProductObject();
     if (p) {
-      setProduct(p);
+      setProduct({ ...p, index });
       setModalOpen({ ...modalOpen, deleteModal: true });
     } else {
       setModalOpen({ ...modalOpen, deleteModal: false });
@@ -101,10 +112,14 @@ export default function Products() {
     }
   }
 
-  // CRUD Functions
+  /**
+   * CRUD Functions
+   */
+
+  // Validating name and price fields and if product already exists
   function validateForm() {
-    if (product.nome.length === 0 || Number(product.preco) === 0) {
-      growl.show({
+    if (product.newName.length === 0 || Number(product.price) === 0) {
+      growl.current.show({
         severity: 'error',
         summary: `Preencha os campos corretamente!`,
       });
@@ -112,14 +127,26 @@ export default function Products() {
       return false;
     }
 
-    const productExists = productList.find(obj => {
-      if (obj.nome.toLowerCase() === product.nome.toLowerCase()) {
+    /**
+     * Removes the current product from the list, so if it is an update,
+     * do not accuse that the product already exists
+     *
+     * Case it's a create action, name will always be a empty string,
+     * so the filter method will not filter any object.
+     * */
+    const listWithoutThisProduct = productList.filter(
+      value => value.name !== product.name
+    );
+
+    const productAlreadyExists = listWithoutThisProduct.find(obj => {
+      if (obj.name.toLowerCase() === product.newName.toLowerCase()) {
         return true;
       }
+      return false;
     });
 
-    if (productExists) {
-      growl.show({
+    if (productAlreadyExists) {
+      growl.current.show({
         severity: 'error',
         summary: `Produto já cadastrado no sistema!`,
       });
@@ -129,13 +156,6 @@ export default function Products() {
 
     return true;
   }
-  function onSucessUpdate() {
-    console.log(growl);
-    growl.show({
-      severity: 'success',
-      summary: `${product.nome} adicionado com sucesso`,
-    });
-  }
 
   // Function used to both create and edit
   function handleSave(isUpdate) {
@@ -144,24 +164,59 @@ export default function Products() {
     }
 
     if (isUpdate) {
-      ProductController.update(product, growl);
-      closeModal();
-    } else {
-      ProductController.create(product).then(onSucessUpdate, () =>
-        growl.show({
-          severity: 'error',
-          summary: `Ocorreu um erro ao adicionar produto`,
-        })
+      ProductController.update(product).then(
+        () => {
+          fetchProducts();
+          growl.current.show({
+            severity: 'success',
+            summary: `${product.newName} atualizado com sucesso`,
+          });
+        },
+        () =>
+          growl.current.show({
+            severity: 'error',
+            summary: `Ocorreu um erro ao atualizar produto`,
+          })
       );
-      // ProductController.create(product, growl);
-      cleanUpProductObject();
       closeModal();
+      cleanUpProductObject();
+    } else {
+      ProductController.create(product).then(
+        () => {
+          fetchProducts();
+          growl.current.show({
+            severity: 'success',
+            summary: `${product.newName} adicionado com sucesso`,
+          });
+        },
+        () =>
+          growl.current.show({
+            severity: 'error',
+            summary: `Ocorreu um erro ao adicionar produto`,
+          })
+      );
+      closeModal();
+      cleanUpProductObject();
     }
   }
 
-  function handleDelete(id) {
-    ProductController.delete(id, growl);
+  function handleDelete(p) {
+    ProductController.delete(p.id).then(
+      () => {
+        fetchProducts();
+        growl.current.show({
+          severity: 'success',
+          summary: `${product.name} excluido com sucesso`,
+        });
+      },
+      () =>
+        growl.current.show({
+          severity: 'error',
+          summary: `Ocorreu um erro ao excluir produto`,
+        })
+    );
     setModalOpen({ ...modalOpen, deleteModal: false });
+    cleanUpProductObject();
   }
 
   function handleStockHistoryItem(stockHistory) {
@@ -215,11 +270,12 @@ export default function Products() {
   }
   return (
     <div>
-      <Growl ref={el => setGrowlObj(el)} />
+      <Growl ref={growl} />
 
       <ListHeader
         btnText="Cadastrar Produto"
         btnFunction={openAddModal}
+        filterList={filterList}
         placeHolder="Digite aqui o nome do produto"
       />
       <ProductList>
@@ -231,10 +287,10 @@ export default function Products() {
           </tr>
         </thead>
         <tbody>
-          {productList.map(p => (
+          {filteredList.map((p, idx) => (
             <tr key={p.id}>
-              <td>{p.nome}</td>
-              <td>{`R$${p.preco}`}</td>
+              <td>{p.name}</td>
+              <td>{`R$${p.price}`}</td>
 
               {p.manageStock ? <td>{p.currentStock}</td> : <td>0</td>}
 
@@ -251,7 +307,7 @@ export default function Products() {
 
                     <DropdownItem
                       type="button"
-                      onClick={() => toggleDeleteModal(p)}
+                      onClick={() => toggleDeleteModal(p, idx)}
                     >
                       Excluir produto
                     </DropdownItem>
@@ -260,7 +316,7 @@ export default function Products() {
                       type="button"
                       onClick={() => toggleStockHistoryModal(p)}
                     >
-                      Visualizar histórico do estoque de {p.nome}
+                      Visualizar histórico do estoque de {p.name}
                     </DropdownItem>
                   </DropdownContent>
                 </DropdownList>
@@ -274,9 +330,9 @@ export default function Products() {
       <ConfirmModal
         isOpen={modalOpen.deleteModal}
         title="Excluir produto"
-        msg={`Deseja realmente excluir o produto ${product.nome}?`}
+        msg={`Deseja realmente excluir o produto ${product.name}?`}
         handleClose={() => toggleDeleteModal()}
-        handleConfirm={() => handleDelete(product.id)}
+        handleConfirm={() => handleDelete(product)}
       />
 
       {/* Add/Edit modal */}
@@ -291,14 +347,14 @@ export default function Products() {
         <p>Nome</p>
         <input
           id="product-name"
-          value={product.nome}
-          onChange={e => setProduct({ ...product, nome: e.target.value })}
+          value={product.newName}
+          onChange={e => setProduct({ ...product, newName: e.target.value })}
         />
-        <p>Preco</p>
+        <p>Preço</p>
         <input
           type="number"
-          value={product.preco}
-          onChange={e => setProduct({ ...product, preco: e.target.value })}
+          value={product.price}
+          onChange={e => setProduct({ ...product, price: e.target.value })}
         />
 
         <CheckboxContainer>
@@ -308,8 +364,7 @@ export default function Products() {
               setProduct({
                 ...product,
                 manageStock: !product.manageStock,
-              })
-            }
+              })}
           />
           Gerenciar estoque
         </CheckboxContainer>
@@ -341,7 +396,7 @@ export default function Products() {
         overlayClassName="modal-overlay"
       >
         <div className="header">
-          <p>Histórico de estoque de {product.nome}</p>
+          <p>Histórico de estoque de {product.name}</p>
           <FiX
             size={24}
             color="#837B7B"

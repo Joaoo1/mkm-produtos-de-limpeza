@@ -3,60 +3,45 @@ import { COL_PRODUCTS } from '../constants/firestore';
 
 const ProductController = {
   async index() {
-    const data = await Firestore.collection(COL_PRODUCTS).get();
+    const data = await Firestore.collection(COL_PRODUCTS)
+      .orderBy('nome', 'asc')
+      .get();
     const products = data.docs.map(doc => {
       const product = doc.data();
       product.id = doc.id;
+
+      // Changing variables language to english
+      product.name = product.nome;
+      product.newName = product.nome;
+      product.price = product.preco;
+
       return product;
     });
 
     return products;
   },
-  create(product, growl) {
+  create(product) {
+    product.nome = product.newName;
+    product.preco = product.price;
     return Firestore.collection(COL_PRODUCTS).add(product);
   },
 
-  update(product, growl) {
+  update(product) {
     const query = Firestore.collection(COL_PRODUCTS).doc(product.id);
 
     // Product document don't need a field with itself id.
     const p = Object.assign(product);
+    p.nome = product.newName;
+    p.preco = product.price;
     delete p.id;
     if (!p.manageStock && p.currentStock) {
       p.currentStock = 0;
     }
-    query.update(p).then(
-      () =>
-        growl.show({
-          severity: 'success',
-          summary: `${product.nome} atualizado com sucesso`,
-        }),
-      () =>
-        growl.show({
-          severity: 'error',
-          summary: `Ocorreu um erro ao adicionar produto`,
-        })
-    );
+    return query.update(p);
   },
 
-  delete(id, growl) {
-    if (id) {
-      Firestore.collection(COL_PRODUCTS)
-        .doc(id)
-        .delete()
-        .then(
-          () =>
-            growl.show({
-              severity: 'success',
-              summary: `Produto excluido com sucesso`,
-            }),
-          () =>
-            growl.show({
-              severity: 'error',
-              summary: `Ocorreu um erro ao adicionar produto`,
-            })
-        );
-    }
+  delete(id) {
+    return Firestore.collection(COL_PRODUCTS).doc(id).delete();
   },
 };
 

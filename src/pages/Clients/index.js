@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FiMoreVertical, FiX, FiCheckSquare, FiEdit } from 'react-icons/fi';
 import { Growl } from 'primereact/growl';
 
@@ -23,6 +23,8 @@ import ConfirmModal from '../../components/ConfirmModal';
 import ClientController from '../../controllers/ClientController';
 
 export default function Clients() {
+  const growl = useRef(null);
+
   ClientModal.setAppElement('#root');
   const [modalTitle, setModalTitle] = useState('');
   const [modalOpen, setModalOpen] = useState({
@@ -30,9 +32,19 @@ export default function Clients() {
     deleteModal: false,
     purchasesMadeModal: false,
   });
+
   const [client, setClient] = useState({});
   const [clientList, setClientList] = useState([]);
-  let growl = {};
+  const [filteredList, setFilteredList] = useState([]);
+
+  useEffect(() => {
+    async function init() {
+      const clients = await ClientController.index();
+      setClientList(clients);
+      setFilteredList(clients);
+    }
+    init();
+  }, []);
 
   function cleanUpClientObject() {
     setClient({
@@ -46,45 +58,27 @@ export default function Clients() {
     });
   }
 
-  useEffect(() => {
-    async function fetchProducts() {
-      const clients = await ClientController.index();
-      setClientList(clients);
-    }
-    fetchProducts();
-  }, []);
-
-  function setGrowl(el) {
-    growl = el;
-  }
-  // Function used to both create and edit
-  function handleSave(isUpdate) {
-    if (isUpdate) {
-      ClientController.update(client, growl);
-      setModalOpen({ ...modalOpen, addEditModal: false });
-    } else {
-      ClientController.create(client, growl);
-      cleanUpClientObject();
-      setModalOpen({ ...modalOpen, addEditModal: false });
-    }
+  async function fetchClients() {
+    const clients = await ClientController.index();
+    setClientList(clients);
   }
 
-  function handleDelete(id) {
-    ClientController.delete(id, growl);
-    setModalOpen({ ...modalOpen, deleteModal: false });
+  function filterList(event) {
+    setFilteredList(
+      clientList.filter(c =>
+        c.nome.toLowerCase().includes(event.target.value.toLowerCase())
+      )
+    );
   }
 
   // Modal functions
   function closeModal() {
-    /**
-     * TODO: Check if is data to save
-     */
-
-    setModalOpen(false);
+    setModalOpen({ ...modalOpen, addEditModal: false });
     cleanUpClientObject();
   }
 
   function openModal(c) {
+    cleanUpClientObject();
     // If client is null add a new one, otherwise edit
     if (!c) {
       setModalTitle('Cadastrar novo cliente');
@@ -116,17 +110,89 @@ export default function Clients() {
     }
   }
 
-  function handleClosePurchasesModal() {
-    cleanUpClientObject();
-    setModalOpen({ ...modalOpen, purchasesMadeModal: false });
+  /**
+   * CRUD Functions
+   */
+
+  function validateForm() {
+    if (client.nome.length === 0) {
+      growl.current.show({
+        severity: 'error',
+        summary: 'Digite o nome do cliente',
+      });
+      return false;
+    }
+
+    return true;
   }
+
+  // Function used to both create and edit
+  function handleSave(isUpdate) {
+    if (!validateForm()) {
+      return;
+    }
+
+    if (isUpdate) {
+      ClientController.update(client).then(
+        () => {
+          fetchClients();
+          growl.show({
+            severity: 'success',
+            summary: 'Cliente atualizado com sucesso',
+          });
+        },
+        () =>
+          growl.show({
+            severity: 'error',
+            summary: `Ocorreu um erro ao atualizar cliente`,
+          })
+      );
+    } else {
+      ClientController.create(client).then(
+        () => {
+          fetchClients();
+          growl.show({
+            severity: 'success',
+            summary: 'Cliente adicionado com sucesso',
+          });
+        },
+        () =>
+          growl.show({
+            severity: 'error',
+            summary: `Ocorreu um erro ao adicionar cliente`,
+          })
+      );
+    }
+    closeModal();
+  }
+
+  function handleDelete(id) {
+    ClientController.delete(id).then(
+      () => {
+        fetchClients();
+        growl.show({
+          severity: 'success',
+          summary: 'Cliente excluido com sucesso',
+        });
+      },
+
+      () =>
+        growl.show({
+          severity: 'error',
+          summary: `Ocorreu um erro ao excluir produto`,
+        })
+    );
+    setModalOpen({ ...modalOpen, deleteModal: false });
+  }
+
   return (
     <div>
-      <Growl ref={el => setGrowl(el)} />
+      <Growl ref={growl} />
 
       <ListHeader
         btnFunction={() => openModal()}
         btnText="Cadastrar cliente"
+        filterList={filterList}
         placeHolder="Digite aqui o nome do cliente"
       />
 
@@ -143,7 +209,7 @@ export default function Clients() {
         </thead>
 
         <tbody>
-          {clientList.map(c => {
+          {filteredList.map(c => {
             return (
               <tr key={c.id}>
                 <td>{c.nome}</td>
@@ -255,12 +321,12 @@ export default function Clients() {
       {/* Purchases made modal */}
       <PurchasesMadeModal
         isOpen={modalOpen.purchasesMadeModal}
-        onRequestClose={handleClosePurchasesModal}
+        onRequestClose={tooglePurchasesModal}
         overlayClassName="modal-overlay"
       >
         <header className="p-grid p-nogutter p-justify-between">
           <h2>{`Compras feitas por ${client.nome}`}</h2>
-          <FiX size={28} onClick={handleClosePurchasesModal} />
+          <FiX size={28} onClick={tooglePurchasesModal} />
         </header>
         <hr />
         <PurchasesMadeList>
