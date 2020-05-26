@@ -6,6 +6,7 @@ const StockHistoryController = {
     const data = await Firestore.collection(COL_PRODUCTS)
       .doc(productId)
       .collection(SUBCOL_STOCK_HISTORY)
+      .orderBy('date', 'desc')
       .get();
     const stockHistories = data.docs.map(doc => {
       const stockHistory = doc.data();

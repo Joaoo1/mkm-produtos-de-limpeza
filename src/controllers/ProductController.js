@@ -13,20 +13,7 @@ const ProductController = {
     return products;
   },
   create(product, growl) {
-    Firestore.collection(COL_PRODUCTS)
-      .add(product)
-      .then(
-        () =>
-          growl.show({
-            severity: 'success',
-            summary: `${product.nome} adicionado com sucesso`,
-          }),
-        () =>
-          growl.show({
-            severity: 'error',
-            summary: `Ocorreu um erro ao adicionar produto`,
-          })
-      );
+    return Firestore.collection(COL_PRODUCTS).add(product);
   },
 
   update(product, growl) {

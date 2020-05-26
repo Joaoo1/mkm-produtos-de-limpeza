@@ -45,11 +45,12 @@ export default function Products() {
   const [product, setProduct] = useState({});
   const [productList, setProductList] = useState([]);
 
+  async function fetchProducts() {
+    const products = await ProductController.index();
+    setProductList(products);
+  }
+
   useEffect(() => {
-    async function fetchProducts() {
-      const products = await ProductController.index();
-      setProductList(products);
-    }
     fetchProducts();
   }, []);
 
@@ -62,26 +63,8 @@ export default function Products() {
     });
   }
 
-  // Function used to both create and edit
-  function handleSave(isUpdate) {
-    if (isUpdate) {
-      ProductController.update(product, growl);
-      setModalOpen(false);
-    } else {
-      ProductController.create(product, growl);
-      cleanUpProductObject();
-      setModalOpen({ ...modalOpen, addEditModal: false });
-    }
-  }
-
-  function handleDelete(id) {
-    ProductController.delete(id, growl);
-    setModalOpen({ ...modalOpen, deleteModal: false });
-  }
-
   // Modal functions
   function closeModal() {
-    // TODO: Check if there is data to save
     setModalOpen({ ...modalOpen, addEditModal: false });
   }
 
@@ -116,6 +99,69 @@ export default function Products() {
     } else {
       setModalOpen({ ...modalOpen, stockHistoryModal: false });
     }
+  }
+
+  // CRUD Functions
+  function validateForm() {
+    if (product.nome.length === 0 || Number(product.preco) === 0) {
+      growl.show({
+        severity: 'error',
+        summary: `Preencha os campos corretamente!`,
+      });
+
+      return false;
+    }
+
+    const productExists = productList.find(obj => {
+      if (obj.nome.toLowerCase() === product.nome.toLowerCase()) {
+        return true;
+      }
+    });
+
+    if (productExists) {
+      growl.show({
+        severity: 'error',
+        summary: `Produto já cadastrado no sistema!`,
+      });
+
+      return false;
+    }
+
+    return true;
+  }
+  function onSucessUpdate() {
+    console.log(growl);
+    growl.show({
+      severity: 'success',
+      summary: `${product.nome} adicionado com sucesso`,
+    });
+  }
+
+  // Function used to both create and edit
+  function handleSave(isUpdate) {
+    if (!validateForm()) {
+      return;
+    }
+
+    if (isUpdate) {
+      ProductController.update(product, growl);
+      closeModal();
+    } else {
+      ProductController.create(product).then(onSucessUpdate, () =>
+        growl.show({
+          severity: 'error',
+          summary: `Ocorreu um erro ao adicionar produto`,
+        })
+      );
+      // ProductController.create(product, growl);
+      cleanUpProductObject();
+      closeModal();
+    }
+  }
+
+  function handleDelete(id) {
+    ProductController.delete(id, growl);
+    setModalOpen({ ...modalOpen, deleteModal: false });
   }
 
   function handleStockHistoryItem(stockHistory) {
@@ -167,7 +213,6 @@ export default function Products() {
       </tr>
     );
   }
-
   return (
     <div>
       <Growl ref={el => setGrowlObj(el)} />
