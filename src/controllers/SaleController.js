@@ -1,5 +1,5 @@
 import { Firestore } from '../server/firebase';
-// import SaleProductController from './SaleProductController';
+import FormatSale from '../helpers/FormatSale';
 import { COL_SALES, SUBCOL_SALE_PRODUCTS } from '../constants/firestore';
 
 const SaleController = {
@@ -13,19 +13,6 @@ const SaleController = {
           sale.id = snapshot.id;
           sale.products = [];
 
-          // Converting timestamp to date
-          const date = sale.dataVenda.toDate();
-          const FormattedDate = Intl.DateTimeFormat('pt-BR').format(date);
-          sale.dataVenda = FormattedDate;
-
-          if (sale.pago) {
-            sale.situation = 'PAGO';
-          } else if (parseInt(sale.valorPago, 10) > 0) {
-            sale.situation = 'PARCIALMENTE PAGO';
-          } else {
-            sale.situation = 'NÃO PAGO';
-          }
-
           Firestore.collection(COL_SALES)
             .doc(sale.id)
             .collection(SUBCOL_SALE_PRODUCTS)
@@ -34,12 +21,23 @@ const SaleController = {
               snapshot1.forEach(product => {
                 sale.products.push(product.data());
               });
-              sales.push(sale);
+
+              sales.push(FormatSale(sale));
             });
         });
       });
 
     return sales;
+  },
+
+  update(sale) {
+    const query = Firestore.collection(COL_SALES).doc(sale.id);
+
+    const s = Object.assign(sale);
+    delete s.id;
+    delete s.situation;
+
+    return query.update(s);
   },
 };
 

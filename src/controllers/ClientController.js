@@ -1,5 +1,6 @@
 import { Firestore } from '../server/firebase';
 import { COL_CLIENTS } from '../constants/firestore';
+import Client from '../models/Client';
 
 const ClientController = {
   async index() {
@@ -7,8 +8,7 @@ const ClientController = {
     const clients = data.docs.map(doc => {
       const c = doc.data();
       c.id = doc.id;
-
-      return c;
+      return new Client(c);
     });
     return clients;
   },

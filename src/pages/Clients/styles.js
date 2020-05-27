@@ -4,6 +4,14 @@ import { List } from '../../styles/table';
 
 const PurchasesMadeList = styled(List)`
   min-width: 0;
+
+  .sale-id {
+    width: 55px;
+  }
+
+  p {
+    padding-top: 7px;
+  }
 `;
 
 export { PurchasesMadeList };

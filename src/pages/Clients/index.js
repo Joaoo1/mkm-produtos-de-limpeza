@@ -22,6 +22,9 @@ import ConfirmModal from '../../components/ConfirmModal';
 
 import ClientController from '../../controllers/ClientController';
 import ClientSalesController from '../../controllers/ClientSalesController';
+import SaleController from '../../controllers/SaleController';
+
+import Client from '../../models/Client';
 
 export default function Clients() {
   const growl = useRef(null);
@@ -34,7 +37,7 @@ export default function Clients() {
     purchasesMadeModal: false,
   });
 
-  const [client, setClient] = useState({});
+  const [client, setClient] = useState(new Client({}));
   const [clientList, setClientList] = useState([]);
   const [filteredList, setFilteredList] = useState([]);
   const [clientSalesList, setClientSalesList] = useState([]);
@@ -49,22 +52,6 @@ export default function Clients() {
     fetchClients();
   }, []);
 
-  // setInterval(() => {
-  //   console.log(clientSalesList);
-  // }, 1000);
-
-  function cleanUpClientObject() {
-    setClient({
-      bairro: '',
-      cidade: '',
-      endereco: '',
-      complemento: '',
-      nome: '',
-      telefone: '',
-      id: '',
-    });
-  }
-
   function filterList(event) {
     setFilteredList(
       clientList.filter(c =>
@@ -76,11 +63,11 @@ export default function Clients() {
   // Modal functions
   function closeModal() {
     setModalOpen({ ...modalOpen, addEditModal: false });
-    cleanUpClientObject();
+    client.cleanUp();
   }
 
   function openModal(c) {
-    cleanUpClientObject();
+    client.cleanUp();
     // If client is null add a new one, otherwise edit
     if (!c) {
       setModalTitle('Cadastrar novo cliente');
@@ -93,7 +80,7 @@ export default function Clients() {
   }
 
   function toogleDeleteModal(c) {
-    cleanUpClientObject();
+    client.cleanUp();
     if (c) {
       setClient(c);
       setModalOpen({ ...modalOpen, deleteModal: true });
@@ -103,11 +90,10 @@ export default function Clients() {
   }
 
   async function tooglePurchasesModal(c) {
-    cleanUpClientObject();
+    client.cleanUp();
     if (c) {
       setClient(c);
       const a = await ClientSalesController.index(c.id);
-      console.log(a);
       setClientSalesList(a);
       setModalOpen({ ...modalOpen, purchasesMadeModal: true });
     } else {
@@ -188,6 +174,47 @@ export default function Clients() {
         })
     );
     setModalOpen({ ...modalOpen, deleteModal: false });
+  }
+
+  function changeSaleSituation(sale, index) {
+    if (sale.pago) {
+      growl.current.show({
+        severity: 'info',
+        summary: 'Esta venda já foi finalizada',
+      });
+
+      return;
+    }
+    // Saving id because it will be deleted in the controller
+    const { id } = sale;
+
+    sale.valorAReceber = '0.00';
+    sale.valorPago = sale.valorLiquido;
+    sale.pago = true;
+
+    SaleController.update(sale).then(
+      () => {
+        const newList = clientSalesList.map((s, idx) => {
+          if (idx === index) {
+            sale.situation = 'PAGO';
+            sale.id = id;
+            return sale;
+          }
+          return s;
+        });
+        setClientSalesList(newList);
+        growl.current.show({
+          severity: 'success',
+          summary: 'Venda finalizada com sucesso',
+        });
+      },
+      () => {
+        growl.current.show({
+          severity: 'error',
+          summary: 'Ocorreu um erro ao finalizar venda',
+        });
+      }
+    );
   }
 
   return (
@@ -346,19 +373,21 @@ export default function Clients() {
           </thead>
           <tbody>
             {clientSalesList &&
-              clientSalesList.map(sale => {
+              clientSalesList.map((sale, idx) => {
                 return (
                   <tr key={sale.id}>
-                    <td>{sale.idVenda}</td>
-                    <td>{sale.dataVenda.seconds}</td>
+                    <td className="sale-id">{sale.idVenda}</td>
+                    <td>{sale.dataVenda}</td>
                     <td>{`R$${sale.valorLiquido}`}</td>
-                    <td>NÃO PAGO</td>
+                    <td>{sale.situation}</td>
                     <td>
                       <div className="p-grid p-dir-col">
                         {sale.products &&
                           sale.products.map(product => {
                             return (
-                              <p>{`${product.quantidade}x ${product.nome}`}</p>
+                              <p key={product.id}>
+                                {`${product.quantidade}x ${product.nome}`}
+                              </p>
                             );
                           })}
                       </div>
@@ -369,6 +398,7 @@ export default function Clients() {
                           size={26}
                           color="green"
                           title="Mudar situação para pago"
+                          onClick={() => changeSaleSituation(sale, idx)}
                         />
                         <br />
                         <FiEdit size={24} title="Editar venda" />
