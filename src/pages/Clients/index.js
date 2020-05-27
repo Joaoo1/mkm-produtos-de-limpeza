@@ -21,6 +21,7 @@ import ListHeader from '../../components/ListHeader';
 import ConfirmModal from '../../components/ConfirmModal';
 
 import ClientController from '../../controllers/ClientController';
+import ClientSalesController from '../../controllers/ClientSalesController';
 
 export default function Clients() {
   const growl = useRef(null);
@@ -36,15 +37,21 @@ export default function Clients() {
   const [client, setClient] = useState({});
   const [clientList, setClientList] = useState([]);
   const [filteredList, setFilteredList] = useState([]);
+  const [clientSalesList, setClientSalesList] = useState([]);
+
+  async function fetchClients() {
+    const clients = await ClientController.index();
+    setClientList(clients);
+    setFilteredList(clients);
+  }
 
   useEffect(() => {
-    async function init() {
-      const clients = await ClientController.index();
-      setClientList(clients);
-      setFilteredList(clients);
-    }
-    init();
+    fetchClients();
   }, []);
+
+  // setInterval(() => {
+  //   console.log(clientSalesList);
+  // }, 1000);
 
   function cleanUpClientObject() {
     setClient({
@@ -56,11 +63,6 @@ export default function Clients() {
       telefone: '',
       id: '',
     });
-  }
-
-  async function fetchClients() {
-    const clients = await ClientController.index();
-    setClientList(clients);
   }
 
   function filterList(event) {
@@ -100,13 +102,16 @@ export default function Clients() {
     }
   }
 
-  function tooglePurchasesModal(c) {
+  async function tooglePurchasesModal(c) {
     cleanUpClientObject();
     if (c) {
       setClient(c);
+      const a = await ClientSalesController.index(c.id);
+      console.log(a);
+      setClientSalesList(a);
       setModalOpen({ ...modalOpen, purchasesMadeModal: true });
     } else {
-      setModalOpen({ ...modalOpen, purchasesMadeModal: true });
+      setModalOpen({ ...modalOpen, purchasesMadeModal: false });
     }
   }
 
@@ -136,13 +141,13 @@ export default function Clients() {
       ClientController.update(client).then(
         () => {
           fetchClients();
-          growl.show({
+          growl.current.show({
             severity: 'success',
             summary: 'Cliente atualizado com sucesso',
           });
         },
         () =>
-          growl.show({
+          growl.current.show({
             severity: 'error',
             summary: `Ocorreu um erro ao atualizar cliente`,
           })
@@ -151,13 +156,13 @@ export default function Clients() {
       ClientController.create(client).then(
         () => {
           fetchClients();
-          growl.show({
+          growl.current.show({
             severity: 'success',
             summary: 'Cliente adicionado com sucesso',
           });
         },
         () =>
-          growl.show({
+          growl.current.show({
             severity: 'error',
             summary: `Ocorreu um erro ao adicionar cliente`,
           })
@@ -170,16 +175,16 @@ export default function Clients() {
     ClientController.delete(id).then(
       () => {
         fetchClients();
-        growl.show({
+        growl.current.show({
           severity: 'success',
           summary: 'Cliente excluido com sucesso',
         });
       },
 
       () =>
-        growl.show({
+        growl.current.show({
           severity: 'error',
-          summary: `Ocorreu um erro ao excluir produto`,
+          summary: `Ocorreu um erro ao excluir cliente`,
         })
     );
     setModalOpen({ ...modalOpen, deleteModal: false });
@@ -213,7 +218,7 @@ export default function Clients() {
             return (
               <tr key={c.id}>
                 <td>{c.nome}</td>
-                <td>{`${c.endereco},${c.complemento}`}</td>
+                <td>{`${c.endereco}, ${c.complemento}`}</td>
                 <td>{c.bairro}</td>
                 <td>{c.cidade}</td>
                 <td>{c.telefone}</td>
@@ -321,12 +326,12 @@ export default function Clients() {
       {/* Purchases made modal */}
       <PurchasesMadeModal
         isOpen={modalOpen.purchasesMadeModal}
-        onRequestClose={tooglePurchasesModal}
+        onRequestClose={() => tooglePurchasesModal(null)}
         overlayClassName="modal-overlay"
       >
         <header className="p-grid p-nogutter p-justify-between">
           <h2>{`Compras feitas por ${client.nome}`}</h2>
-          <FiX size={28} onClick={tooglePurchasesModal} />
+          <FiX size={28} onClick={() => tooglePurchasesModal(null)} />
         </header>
         <hr />
         <PurchasesMadeList>
@@ -340,30 +345,38 @@ export default function Clients() {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>9999</td>
-              <td>10/02/2020</td>
-              <td>R$20.00</td>
-              <td>NÃO PAGO</td>
-              <td>
-                <div className="p-grid p-dir-col">
-                  <p>1x Desifentante</p>
-                  <p>2x Desifentante</p>
-                  <p>1x Amaciante</p>
-                </div>
-              </td>
-              <td>
-                <div className="p-grid p-dir-col p-justify-around p-nogutter">
-                  <FiCheckSquare
-                    size={26}
-                    color="green"
-                    title="Mudar situação para pago"
-                  />
-                  <br />
-                  <FiEdit size={24} title="Editar venda" />
-                </div>
-              </td>
-            </tr>
+            {clientSalesList &&
+              clientSalesList.map(sale => {
+                return (
+                  <tr key={sale.id}>
+                    <td>{sale.idVenda}</td>
+                    <td>{sale.dataVenda.seconds}</td>
+                    <td>{`R$${sale.valorLiquido}`}</td>
+                    <td>NÃO PAGO</td>
+                    <td>
+                      <div className="p-grid p-dir-col">
+                        {sale.products &&
+                          sale.products.map(product => {
+                            return (
+                              <p>{`${product.quantidade}x ${product.nome}`}</p>
+                            );
+                          })}
+                      </div>
+                    </td>
+                    <td>
+                      <div className="p-grid p-dir-col p-justify-around p-nogutter">
+                        <FiCheckSquare
+                          size={26}
+                          color="green"
+                          title="Mudar situação para pago"
+                        />
+                        <br />
+                        <FiEdit size={24} title="Editar venda" />
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
           </tbody>
         </PurchasesMadeList>
       </PurchasesMadeModal>

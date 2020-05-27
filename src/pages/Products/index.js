@@ -45,15 +45,11 @@ export default function Products() {
   async function fetchProducts() {
     const products = await ProductController.index();
     setProductList(products);
+    setFilteredList(products);
   }
 
   useEffect(() => {
-    async function init() {
-      const products = await ProductController.index();
-      setProductList(products);
-      setFilteredList(products);
-    }
-    init();
+    fetchProducts();
   }, []);
 
   function cleanUpProductObject() {
