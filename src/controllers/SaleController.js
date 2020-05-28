@@ -1,3 +1,4 @@
+import firebase from 'firebase';
 import { Firestore } from '../server/firebase';
 import FormatSale from '../helpers/FormatSale';
 import { COL_SALES, SUBCOL_SALE_PRODUCTS } from '../constants/firestore';
@@ -30,14 +31,13 @@ const SaleController = {
     return sales;
   },
 
-  update(sale) {
-    const query = Firestore.collection(COL_SALES).doc(sale.id);
+  update(sale, isFinishSale) {
+    if (isFinishSale) {
+      const finish = firebase.functions().httpsCallable('finishSale');
+      return finish(sale);
+    }
 
-    const s = Object.assign(sale);
-    delete s.id;
-    delete s.situation;
-
-    return query.update(s);
+    return Firestore.collection('vendas').doc(sale.id).update(sale);
   },
 };
 

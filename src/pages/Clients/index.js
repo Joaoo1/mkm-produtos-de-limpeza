@@ -185,20 +185,12 @@ export default function Clients() {
 
       return;
     }
-    // Saving id because it will be deleted in the controller
-    const { id } = sale;
 
-    sale.valorAReceber = '0.00';
-    sale.valorPago = sale.valorLiquido;
-    sale.pago = true;
-
-    SaleController.update(sale).then(
-      () => {
+    SaleController.update(sale, true).then(
+      sale => {
         const newList = clientSalesList.map((s, idx) => {
           if (idx === index) {
-            sale.situation = 'PAGO';
-            sale.id = id;
-            return sale;
+            return sale.data;
           }
           return s;
         });
