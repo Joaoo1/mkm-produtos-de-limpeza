@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FiMoreVertical, FiX, FiCheckSquare, FiEdit } from 'react-icons/fi';
 import { Growl } from 'primereact/growl';
+import { successMsg, errorMsg, infoMsg } from '../../helpers/Growl';
 
 import {
   PurchasesMadeModal,
@@ -14,7 +15,6 @@ import {
   DropdownItem,
   List as ClientList,
 } from '../../styles/table';
-
 import { PurchasesMadeList } from './styles';
 
 import ListHeader from '../../components/ListHeader';
@@ -63,13 +63,12 @@ export default function Clients() {
   // Modal functions
   function closeModal() {
     setModalOpen({ ...modalOpen, addEditModal: false });
-    client.cleanUp();
   }
 
   function openModal(c) {
-    client.cleanUp();
     // If client is null add a new one, otherwise edit
     if (!c) {
+      setClient(new Client({}));
       setModalTitle('Cadastrar novo cliente');
       setModalOpen({ ...modalOpen, addEditModal: true });
     } else {
@@ -80,7 +79,6 @@ export default function Clients() {
   }
 
   function toogleDeleteModal(c) {
-    client.cleanUp();
     if (c) {
       setClient(c);
       setModalOpen({ ...modalOpen, deleteModal: true });
@@ -90,7 +88,6 @@ export default function Clients() {
   }
 
   async function tooglePurchasesModal(c) {
-    client.cleanUp();
     if (c) {
       setClient(c);
       const a = await ClientSalesController.index(c.id);
@@ -107,10 +104,7 @@ export default function Clients() {
 
   function validateForm() {
     if (client.nome.length === 0) {
-      growl.current.show({
-        severity: 'error',
-        summary: 'Digite o nome do cliente',
-      });
+      errorMsg(growl, 'Digite o nome do cliente');
       return false;
     }
 
@@ -127,31 +121,17 @@ export default function Clients() {
       ClientController.update(client).then(
         () => {
           fetchClients();
-          growl.current.show({
-            severity: 'success',
-            summary: 'Cliente atualizado com sucesso',
-          });
+          successMsg(growl, 'Cliente atualizado com sucesso');
         },
-        () =>
-          growl.current.show({
-            severity: 'error',
-            summary: `Ocorreu um erro ao atualizar cliente`,
-          })
+        () => errorMsg(growl, 'Ocorreu um erro ao atualizar cliente')
       );
     } else {
       ClientController.create(client).then(
         () => {
           fetchClients();
-          growl.current.show({
-            severity: 'success',
-            summary: 'Cliente adicionado com sucesso',
-          });
+          successMsg(growl, 'Cliente adicionado com sucesso');
         },
-        () =>
-          growl.current.show({
-            severity: 'error',
-            summary: `Ocorreu um erro ao adicionar cliente`,
-          })
+        () => errorMsg(growl, 'Ocorreu um erro ao adicionar cliente')
       );
     }
     closeModal();
@@ -161,50 +141,29 @@ export default function Clients() {
     ClientController.delete(id).then(
       () => {
         fetchClients();
-        growl.current.show({
-          severity: 'success',
-          summary: 'Cliente excluido com sucesso',
-        });
+        successMsg(growl, 'Cliente excluido com sucesso');
       },
 
-      () =>
-        growl.current.show({
-          severity: 'error',
-          summary: `Ocorreu um erro ao excluir cliente`,
-        })
+      () => errorMsg(growl, 'Ocorreu um erro ao excluir cliente')
     );
+
     setModalOpen({ ...modalOpen, deleteModal: false });
   }
 
-  function changeSaleSituation(sale, index) {
+  function changeSaleSituation(sale) {
     if (sale.pago) {
-      growl.current.show({
-        severity: 'info',
-        summary: 'Esta venda já foi finalizada',
-      });
-
+      infoMsg(growl, 'Esta venda já foi finalizada');
       return;
     }
 
     SaleController.update(sale, true).then(
-      sale => {
-        const newList = clientSalesList.map((s, idx) => {
-          if (idx === index) {
-            return sale.data;
-          }
-          return s;
-        });
+      async () => {
+        const newList = await ClientSalesController.index(client.id);
         setClientSalesList(newList);
-        growl.current.show({
-          severity: 'success',
-          summary: 'Venda finalizada com sucesso',
-        });
+        successMsg(growl, 'Venda finalizada com sucesso');
       },
       () => {
-        growl.current.show({
-          severity: 'error',
-          summary: 'Ocorreu um erro ao finalizar venda',
-        });
+        errorMsg(growl, 'Ocorreu um erro ao finalizar venda');
       }
     );
   }
@@ -212,14 +171,12 @@ export default function Clients() {
   return (
     <div>
       <Growl ref={growl} />
-
       <ListHeader
         btnFunction={() => openModal()}
         btnText="Cadastrar cliente"
         filterList={filterList}
         placeHolder="Digite aqui o nome do cliente"
       />
-
       <ClientList>
         <thead>
           <tr>
@@ -231,7 +188,6 @@ export default function Clients() {
             <th> </th>
           </tr>
         </thead>
-
         <tbody>
           {filteredList.map(c => {
             return (
@@ -272,31 +228,26 @@ export default function Clients() {
       >
         <h2>{modalTitle}</h2>
         <hr />
-
         <p>Nome</p>
         <input
           value={client.nome}
           onChange={e => setClient({ ...client, nome: e.target.value })}
         />
-
         <p>Rua</p>
         <input
           value={client.endereco}
           onChange={e => setClient({ ...client, endereco: e.target.value })}
         />
-
         <p>Complemento</p>
         <input
           value={client.complemento}
           onChange={e => setClient({ ...client, complemento: e.target.value })}
         />
-
         <p>Bairro</p>
         <input
           value={client.bairro}
           onChange={e => setClient({ ...client, bairro: e.target.value })}
         />
-
         <div className="input-city-container">
           <div>
             <p>Cidade</p>
@@ -313,7 +264,6 @@ export default function Clients() {
             />
           </div>
         </div>
-
         <ModalButtonsContainer>
           <SecondaryButton
             type="button"
@@ -322,7 +272,6 @@ export default function Clients() {
           >
             Fechar
           </SecondaryButton>
-
           <PrimaryButton
             type="button"
             className="button-common"

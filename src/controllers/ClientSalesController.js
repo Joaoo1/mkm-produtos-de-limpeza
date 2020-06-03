@@ -1,6 +1,6 @@
 import { Firestore } from '../server/firebase';
+import Sale from '../models/Sale';
 import { COL_SALES, SUBCOL_SALE_PRODUCTS } from '../constants/firestore';
-import FormatSale from '../helpers/FormatSale';
 
 const ClientSalesController = {
   async index(clientId) {
@@ -32,7 +32,7 @@ const ClientSalesController = {
             const productsPromise = getProductsBySaleId(sale.id);
             return productsPromise.then(products => {
               sale.products = products;
-              sales.push(FormatSale(sale));
+              sales.push(new Sale(sale));
               return sales;
             });
           })

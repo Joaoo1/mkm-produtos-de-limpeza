@@ -14,6 +14,7 @@ const ClientController = {
   },
 
   create(client) {
+    delete client.id;
     return Firestore.collection(COL_CLIENTS).add(client);
   },
 

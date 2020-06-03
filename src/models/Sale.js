@@ -1,5 +1,8 @@
+import { convertTimeStampToString } from '../helpers/FormatDate';
+
 export default class Sale {
   constructor({
+    id,
     dataPagamento,
     dataVenda,
     idVenda,
@@ -19,8 +22,12 @@ export default class Sale {
     seller,
     sellerUid,
   }) {
-    this.dataPagamento = dataPagamento;
-    this.dataVenda = dataVenda;
+    this.id = id;
+    this.dataPagamento = dataPagamento
+      ? convertTimeStampToString(dataPagamento)
+      : '';
+
+    this.dataVenda = dataVenda ? convertTimeStampToString(dataVenda) : '';
     this.idVenda = idVenda;
     this.pago = pago;
     this.valorBruto = valorBruto;
@@ -30,22 +37,24 @@ export default class Sale {
     this.desconto = desconto;
     this.idCliente = idCliente;
     this.nomeCliente = nomeCliente;
-    this.bairroCliente = bairroCliente;
-    this.cidadeCliente = cidadeCliente;
-    this.enderecoCliente = enderecoCliente;
-    this.complementoCliente = complementoCliente;
-    this.telefone = telefone;
     this.seller = seller;
-    this.sellerUid = sellerUid;
+    if (sellerUid) this.sellerUid = sellerUid;
+    this.situation = this.getPaymentSituation();
+    if (bairroCliente) this.bairroCliente = bairroCliente;
+    if (cidadeCliente) this.cidadeCliente = cidadeCliente;
+    if (enderecoCliente) this.cidadeCliente = cidadeCliente;
+    if (complementoCliente) this.cidadeCliente = cidadeCliente;
+    if (telefone) this.telefone = telefone;
   }
 
-  static finishSale(s) {
-    const sale = new Sale(s);
-    sale.valorAReceber = '0.00';
-    sale.valorPago = sale.valorLiquido;
-    sale.pago = true;
-
-    // TODO: Delete useless fields
-    return sale;
+  getPaymentSituation() {
+    // Set payment situation
+    if (this.pago) {
+      return 'PAGO';
+    }
+    if (parseInt(this.valorPago, 10) > 0) {
+      return 'PARCIALMENTE PAGO';
+    }
+    return 'NÃO PAGO';
   }
 }

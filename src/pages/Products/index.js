@@ -231,7 +231,7 @@ export default function Products() {
     }
     if (stockHistory.stockChange) {
       return (
-        <tr>
+        <tr id={stockHistory.id}>
           <td>
             <FiChevronDown size={28} color="red" />
           </td>
@@ -244,7 +244,7 @@ export default function Products() {
     }
     if (!stockHistory.stockChange) {
       return (
-        <tr>
+        <tr id={stockHistory.id}>
           <td>
             <FiChevronDown size={28} color="red" />
           </td>

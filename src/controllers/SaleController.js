@@ -1,7 +1,8 @@
 import firebase from 'firebase';
 import { Firestore } from '../server/firebase';
-import FormatSale from '../helpers/FormatSale';
+import Sale from '../models/Sale';
 import { COL_SALES, SUBCOL_SALE_PRODUCTS } from '../constants/firestore';
+import { convertStringToTimeStamp } from '../helpers/FormatDate';
 
 const SaleController = {
   index() {
@@ -22,8 +23,7 @@ const SaleController = {
               snapshot1.forEach(product => {
                 sale.products.push(product.data());
               });
-
-              sales.push(FormatSale(sale));
+              sales.push(new Sale(sale));
             });
         });
       });
@@ -34,10 +34,15 @@ const SaleController = {
   update(sale, isFinishSale) {
     if (isFinishSale) {
       const finish = firebase.functions().httpsCallable('finishSale');
-      return finish(sale);
+      return finish({
+        ...sale,
+        dataVenda: convertStringToTimeStamp(sale.dataVenda),
+      });
     }
 
-    return Firestore.collection('vendas').doc(sale.id).update(sale);
+    return Firestore.collection('vendas')
+      .doc(sale.id)
+      .update({ ...sale, dataVenda: convertStringToTimeStamp(sale.dataVenda) });
   },
 };
 
