@@ -90,6 +90,7 @@ const SelectClientModal = styled(BaseModal)`
     width: 100%;
 
     tr {
+      height: 41px;
       :hover {
         td {
           background-color: #d2ddf7;
