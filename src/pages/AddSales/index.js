@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { FiArrowLeft, FiUserPlus, FiXCircle, FiX } from 'react-icons/fi';
+import {
+  FiArrowLeft,
+  FiUserPlus,
+  FiXCircle,
+  FiX,
+  FiPlus,
+  FiMinus,
+} from 'react-icons/fi';
 import { AutoComplete } from 'primereact/autocomplete';
 import { RadioButton } from 'primereact/radiobutton';
 import { Checkbox } from 'primereact/checkbox';
@@ -35,7 +42,7 @@ export default function AddSales() {
   });
 
   // Prevent AutoComplete from clearing its values automatically
-  const [product, setProduct] = useState('');
+  const [product, setProduct] = useState({ nome: '', quantidade: 1 });
 
   const [products, setProducts] = useState([]);
 
@@ -60,17 +67,30 @@ export default function AddSales() {
 
   function addProductToList(event) {
     if (event.keyCode === 13) {
-      products.forEach((product, idx) => {
-        if (product.nome.includes(event.target.value)) {
-          productSales.push(products[idx]);
-          setProduct('');
+      products.forEach((p, idx) => {
+        if (p.nome.includes(event.target.value)) {
+          productSales.push({
+            ...products[idx],
+            quantidade: product.quantidade,
+          });
+          setProduct({ nome: '', quantidade: 1 });
         }
       });
     }
   }
 
   function test() {
-    console.log(sale, values);
+    console.log(product);
+  }
+
+  function handleRemoveQtt() {
+    if (product.quantidade > 1) {
+      setProduct({ ...product, quantidade: product.quantidade - 1 });
+    }
+  }
+
+  function handleAddQtt() {
+    setProduct({ ...product, quantidade: product.quantidade + 1 });
   }
 
   function handleDeleteProduct(index) {
@@ -113,7 +133,7 @@ export default function AddSales() {
         closeTimeoutMS={450}
         overlayClassName="modal-overlay"
       >
-        <header className="p-grid p-nogutter p-justify-between">
+        <header className="p-grid  p-justify-between">
           <h2>Selecione um cliente</h2>
           <FiX size={28} onClick={toogleSelectClientModal} />
         </header>
@@ -146,7 +166,7 @@ export default function AddSales() {
         </table>
       </SelectClientModal>
 
-      <div className="p-grid p-nogutter">
+      <div className="p-grid ">
         <Header className="p-col-12">
           <p>
             <FiArrowLeft size={40} />
@@ -156,18 +176,38 @@ export default function AddSales() {
         </Header>
 
         <Form className="p-col-12 p-xl-6">
-          <div>
+          <div className="p-grid p-dir-col">
             <h4>Produtos</h4>
-            <AutoComplete
-              id="products"
-              dropdown
-              value={product}
-              onChange={e => setProduct(e.target.value)}
-              suggestions={productsSuggestions}
-              completeMethod={suggestsProducts}
-              placeholder="Digite o nome do produto"
-              onKeyUp={addProductToList}
-            />
+            {/* TODO: Find out why div is getting so height */}
+            <div className="p-grid p-align-center height60px">
+              <AutoComplete
+                id="products"
+                dropdown
+                value={product.nome}
+                onChange={e => setProduct({ ...product, nome: e.target.value })}
+                suggestions={productsSuggestions}
+                completeMethod={suggestsProducts}
+                placeholder="Digite o nome do produto"
+                onKeyUp={addProductToList}
+              />
+              <button type="button" className="quantity" onClick={handleAddQtt}>
+                <FiPlus color="white" size={24} />
+              </button>
+              <InputText
+                id="quantity"
+                value={product.quantidade}
+                keyfilter="int"
+                onChange={e =>
+                  setProduct({ ...product, quantidade: e.target.value })}
+              />
+              <button
+                type="button"
+                className="quantity"
+                onClick={handleRemoveQtt}
+              >
+                <FiMinus color="white" size={24} />
+              </button>
+            </div>
           </div>
           <table>
             <thead>
@@ -195,9 +235,10 @@ export default function AddSales() {
               })}
             </tbody>
           </table>
-          <div>
+          <div className="p-grid p-dir-col ">
             <h4>Cliente</h4>
-            <div className="p-grid p-nogutter p-align-center">
+            {/* TODO: Find out why div is getting so height */}
+            <div className="p-grid p-align-center height60px">
               <InputText
                 id="clients"
                 type="text"
@@ -211,16 +252,15 @@ export default function AddSales() {
             </div>
           </div>
 
-          <div>
+          <div className="p-grid p-dir-col ">
             <h4>Formas de pagamento</h4>
-            <div className="p-grid p-nogutter p-align-center p-justify-between">
+            <div className="p-grid  p-align-center p-justify-between">
               <label>
                 <RadioButton
                   value="unpaid"
                   name="payment"
                   onChange={e =>
-                    setSale({ ...sale, paymentMethod: e.target.value })
-                  }
+                    setSale({ ...sale, paymentMethod: e.target.value })}
                   checked={sale.paymentMethod === 'unpaid'}
                 />
                 Não Pago
@@ -230,8 +270,7 @@ export default function AddSales() {
                   value="paid"
                   name="payment"
                   onChange={e =>
-                    setSale({ ...sale, paymentMethod: e.target.value })
-                  }
+                    setSale({ ...sale, paymentMethod: e.target.value })}
                   checked={sale.paymentMethod === 'paid'}
                 />
                 Pago
@@ -241,8 +280,7 @@ export default function AddSales() {
                   value="partially"
                   name="payment"
                   onChange={e =>
-                    setSale({ ...sale, paymentMethod: e.target.value })
-                  }
+                    setSale({ ...sale, paymentMethod: e.target.value })}
                   checked={sale.paymentMethod === 'partially'}
                 />
                 Parcialmente pago
@@ -250,8 +288,8 @@ export default function AddSales() {
             </div>
           </div>
 
-          <div>
-            <label className="p-grid p-nogutter">
+          <div className="p-grid p-dir-col ">
+            <label className="p-grid ">
               <Checkbox
                 inputId="cb1"
                 value="discount"

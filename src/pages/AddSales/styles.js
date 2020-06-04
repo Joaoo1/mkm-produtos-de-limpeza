@@ -20,10 +20,13 @@ const Header = styled.div`
 const Form = styled.div`
   font-weight: 400;
 
-  span#products input {
-    width: 90%;
+  span#products {
+    width: 75%;
   }
 
+  span#products input {
+    width: 89%;
+  }
   input#clients {
     width: calc(90% - 12px);
   }
@@ -84,15 +87,23 @@ const Form = styled.div`
   }
 
   > div {
-    display: flex;
-    flex-direction: column;
     padding-top: 30px;
+    width: 100%;
 
     button {
       background-color: #007ad9;
       border: none;
       padding: 5px;
       border-radius: 3px;
+    }
+
+    input#quantity,
+    .quantity {
+      height: 46px;
+    }
+
+    input#quantity {
+      width: 30px;
     }
 
     h4 {
@@ -116,6 +127,11 @@ const Form = styled.div`
   /* Autocomplete icon */
   .p-button {
     height: 46px;
+  }
+
+  /* Work around for height bug */
+  .height60px {
+    height: 60px;
   }
 `;
 
