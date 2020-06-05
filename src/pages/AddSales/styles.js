@@ -117,7 +117,10 @@ const Form = styled.div`
 
   label:not(:first-child) .p-radiobutton {
     margin-left: 20px;
-    margin-bottom: 10px;
+  }
+
+  label {
+    margin-bottom: 12px;
   }
 
   .p-radiobutton {
@@ -126,7 +129,6 @@ const Form = styled.div`
 
   .p-checkbox {
     margin-right: 5px;
-    margin-bottom: 15px;
   }
 `;
 

@@ -31,6 +31,8 @@ const SaleController = {
     return sales;
   },
 
+  create(sale) {},
+
   update(sale, isFinishSale) {
     if (isFinishSale) {
       const finish = firebase.functions().httpsCallable('finishSale');

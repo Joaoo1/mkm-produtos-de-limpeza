@@ -31,7 +31,6 @@ export default function AddSales() {
   SelectClientModal.setAppElement('#root');
   const [selectClientModalIsOpen, setSelectClientModalOpen] = useState(false);
   const [productsSuggestions, setProductSuggestions] = useState([]);
-  const [productSales, setProductSales] = useState([]);
   const [clients, setClients] = useState([]);
   const [filteredClients, setFilteredClients] = useState([]);
 
@@ -40,6 +39,7 @@ export default function AddSales() {
     hasDiscount: false,
     products: [],
     client: { nome: '' },
+    total: new Big('0'),
   });
 
   const [values, setValues] = useState({
@@ -47,8 +47,6 @@ export default function AddSales() {
     totalPaid: new Big('0.00'),
     discount: new Big('0.00'),
   });
-
-  const [total, setTotal] = useState(new Big('0'));
 
   // Prevent AutoComplete from clearing its values automatically
   const [product, setProduct] = useState({ nome: '', quantidade: 1 });
@@ -69,7 +67,8 @@ export default function AddSales() {
       .minus(values.discount)
       .minus(values.totalPaid);
 
-    setTotal(newTotal);
+    setSale({ ...sale, total: newTotal });
+    // eslint-disable-next-line
   }, [values]);
 
   // Setting Autocomplete suggestions
@@ -97,7 +96,7 @@ export default function AddSales() {
             product.quantidade = 1;
           }
           incrementTotal(products[i].preco, product.quantidade);
-          productSales.push({
+          sale.products.push({
             ...products[i],
             quantidade: product.quantidade,
           });
@@ -110,8 +109,8 @@ export default function AddSales() {
     }
   }
 
-  function validadeSale() {
-    if (productSales.length === 0) {
+  function validateSale() {
+    if (sale.products.length === 0) {
       errorMsg(growl, 'Venda sem produto adicionado');
       return false;
     }
@@ -133,8 +132,8 @@ export default function AddSales() {
   }
 
   function addSale() {
-    if (validadeSale) {
-      SaleController.create({ ...sale, ...values, total });
+    if (validateSale()) {
+      SaleController.create({ ...sale, ...values });
     }
   }
 
@@ -149,13 +148,16 @@ export default function AddSales() {
   }
 
   function handleDeleteProduct(index) {
-    const deletedProduct = productSales[index];
+    const deletedProduct = sale.products[index];
     const subtract = deletedProduct.preco.mul(deletedProduct.quantidade);
-    const newTotal = total.sub(subtract);
+    const newTotal = sale.total.sub(subtract);
     const newTotalProducts = values.totalProducts.sub(subtract);
-    setTotal(newTotal);
     setValues({ ...values, totalProducts: newTotalProducts });
-    setProductSales(productSales.filter((product, idx) => idx !== index));
+    setSale({
+      ...sale,
+      products: sale.products.filter((product, idx) => idx !== index),
+      total: newTotal,
+    });
   }
 
   async function toogleSelectClientModal() {
@@ -284,7 +286,8 @@ export default function AddSales() {
                 value={product.quantidade}
                 keyfilter="int"
                 onChange={e =>
-                  setProduct({ ...product, quantidade: e.target.value })}
+                  setProduct({ ...product, quantidade: e.target.value })
+                }
               />
               <button
                 type="button"
@@ -302,7 +305,7 @@ export default function AddSales() {
               </tr>
             </thead>
             <tbody>
-              {productSales.map((product, idx) => {
+              {sale.products.map((product, idx) => {
                 return (
                   <tr key={product.id}>
                     <td>{`${product.quantidade}x`}</td>
@@ -423,7 +426,7 @@ export default function AddSales() {
                 <td>
                   <p>Total:</p>
                 </td>
-                <td>{`R$${total.toFixed(2)}`}</td>
+                <td>{`R$${sale.total.toFixed(2)}`}</td>
               </tr>
             </tbody>
           </table>

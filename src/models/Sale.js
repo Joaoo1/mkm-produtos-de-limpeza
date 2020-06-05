@@ -23,7 +23,6 @@ export default class Sale {
     seller,
     sellerUid,
   }) {
-    this.id = id;
     this.dataPagamento = dataPagamento
       ? convertTimeStampToString(dataPagamento)
       : '';
@@ -38,9 +37,10 @@ export default class Sale {
     this.desconto = new Big(desconto);
     this.idCliente = idCliente;
     this.nomeCliente = nomeCliente;
-    this.seller = seller;
-    if (sellerUid) this.sellerUid = sellerUid;
     this.situation = this.getPaymentSituation();
+    if (seller) this.seller = seller;
+    if (id) this.id = id;
+    if (sellerUid) this.sellerUid = sellerUid;
     if (bairroCliente) this.bairroCliente = bairroCliente;
     if (cidadeCliente) this.cidadeCliente = cidadeCliente;
     if (enderecoCliente) this.cidadeCliente = cidadeCliente;
