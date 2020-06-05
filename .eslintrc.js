@@ -33,6 +33,7 @@ module.exports = {
     "no-shadow": "off",
     "jsx-a11y/label-has-associated-control": [2, {
       "controlComponents": ["Checkbox","RadioButton"],
-    }]
+    }],
+    "no-plusplus": "off",
   },
 };

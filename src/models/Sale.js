@@ -1,3 +1,4 @@
+import Big from 'big.js';
 import { convertTimeStampToString } from '../helpers/FormatDate';
 
 export default class Sale {
@@ -30,11 +31,11 @@ export default class Sale {
     this.dataVenda = dataVenda ? convertTimeStampToString(dataVenda) : '';
     this.idVenda = idVenda;
     this.pago = pago;
-    this.valorBruto = valorBruto;
-    this.valorLiquido = valorLiquido;
-    this.valorPago = valorPago;
-    this.valorAReceber = valorAReceber;
-    this.desconto = desconto;
+    this.valorBruto = new Big(valorBruto);
+    this.valorLiquido = new Big(valorLiquido);
+    this.valorPago = new Big(valorPago);
+    this.valorAReceber = new Big(valorAReceber);
+    this.desconto = new Big(desconto);
     this.idCliente = idCliente;
     this.nomeCliente = nomeCliente;
     this.seller = seller;

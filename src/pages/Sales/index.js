@@ -84,7 +84,7 @@ export default function Sales() {
                 <td>{el.idVenda}</td>
                 <td>
                   R$
-                  {el.valorLiquido}
+                  {el.valorLiquido.toString()}
                 </td>
                 <td>{el.dataVenda}</td>
                 <td>{el.nomeCliente}</td>

@@ -20,21 +20,6 @@ const Header = styled.div`
 const Form = styled.div`
   font-weight: 400;
 
-  span#products {
-    width: 75%;
-  }
-
-  span#products input {
-    width: 89%;
-  }
-  input#clients {
-    width: calc(90% - 12px);
-  }
-
-  input#discount {
-    width: 50%;
-  }
-
   table {
     border: 1px solid #d6d6d6;
     border-radius: 10px;
@@ -88,7 +73,6 @@ const Form = styled.div`
 
   > div {
     padding-top: 30px;
-    width: 100%;
 
     button {
       background-color: #007ad9;
@@ -97,47 +81,57 @@ const Form = styled.div`
       border-radius: 3px;
     }
 
-    input#quantity,
-    .quantity {
-      height: 46px;
-    }
-
-    input#quantity {
-      width: 30px;
-    }
-
     h4 {
       margin-bottom: 5px;
     }
   }
 
-  .p-radiobutton:not(:first-child) {
-    margin-left: 20px;
+  input#quantity {
+    width: 45px;
+    font-size: 20px;
+    text-align: center;
   }
 
-  .p-radiobutton,
-  .p-checkbox {
-    margin-right: 5px;
+  input#clients {
+    width: 88%;
   }
 
-  .p-checkbox {
-    margin-bottom: 10px;
+  span#products {
+    width: 60%;
+    display: flex;
+    flex-wrap: nowrap;
+  }
+  span#products input {
+    width: 85%;
   }
 
   /* Autocomplete icon */
   .p-button {
+    margin-right: 10px;
+  }
+
+  .p-button,
+  .quantity {
     height: 46px;
   }
 
-  /* Work around for height bug */
-  .height60px {
-    height: 60px;
+  label:not(:first-child) .p-radiobutton {
+    margin-left: 20px;
+    margin-bottom: 10px;
+  }
+
+  .p-radiobutton {
+    margin-right: 4px;
+  }
+
+  .p-checkbox {
+    margin-right: 5px;
+    margin-bottom: 15px;
   }
 `;
 
 const Values = styled.div`
   padding-top: 30px;
-  margin-top: 30px;
   table {
     float: right;
     font-size: 24px;

@@ -1,3 +1,4 @@
+import Big from 'big.js';
 import { Firestore } from '../server/firebase';
 import { COL_PRODUCTS } from '../constants/firestore';
 
@@ -9,12 +10,7 @@ const ProductController = {
     const products = data.docs.map(doc => {
       const product = doc.data();
       product.id = doc.id;
-
-      // Changing variables language to english
-      product.name = product.nome;
-      product.newName = product.nome;
-      product.price = product.preco;
-
+      product.preco = new Big(product.preco);
       return product;
     });
 
@@ -22,17 +18,17 @@ const ProductController = {
   },
   create(product) {
     product.nome = product.newName;
-    product.preco = product.price;
+    product.preco = product.preco.toFixed(2);
     return Firestore.collection(COL_PRODUCTS).add(product);
   },
 
   update(product) {
     const query = Firestore.collection(COL_PRODUCTS).doc(product.id);
 
-    // Product document don't need a field with itself id.
     const p = Object.assign(product);
     p.nome = product.newName;
-    p.preco = product.price;
+    p.preco = product.preco.toFixed(2);
+    // Product document don't need a field with itself id.
     delete p.id;
     if (!p.manageStock && p.currentStock) {
       p.currentStock = 0;

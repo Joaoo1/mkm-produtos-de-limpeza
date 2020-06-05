@@ -54,9 +54,9 @@ export default function Products() {
 
   function cleanUpProductObject() {
     setProduct({
-      name: '',
+      nome: '',
       newName: '',
-      price: '',
+      preco: '',
       manageStock: false,
       currentStock: 0,
     });
@@ -65,7 +65,7 @@ export default function Products() {
   function filterList(event) {
     setFilteredList(
       productList.filter(prod =>
-        prod.name.toLowerCase().includes(event.target.value.toLowerCase())
+        prod.nome.toLowerCase().includes(event.target.value.toLowerCase())
       )
     );
   }
@@ -112,9 +112,9 @@ export default function Products() {
    * CRUD Functions
    */
 
-  // Validating name and price fields and if product already exists
+  // Validating nome and preco fields and if product already exists
   function validateForm() {
-    if (product.newName.length === 0 || Number(product.price) === 0) {
+    if (product.newName.length === 0 || Number(product.preco) === 0) {
       growl.current.show({
         severity: 'error',
         summary: `Preencha os campos corretamente!`,
@@ -131,11 +131,11 @@ export default function Products() {
      * so the filter method will not filter any object.
      * */
     const listWithoutThisProduct = productList.filter(
-      value => value.name !== product.name
+      value => value.nome !== product.nome
     );
 
     const productAlreadyExists = listWithoutThisProduct.find(obj => {
-      if (obj.name.toLowerCase() === product.newName.toLowerCase()) {
+      if (obj.nome.toLowerCase() === product.newName.toLowerCase()) {
         return true;
       }
       return false;
@@ -202,7 +202,7 @@ export default function Products() {
         fetchProducts();
         growl.current.show({
           severity: 'success',
-          summary: `${product.name} excluido com sucesso`,
+          summary: `${product.nome} excluido com sucesso`,
         });
       },
       () =>
@@ -285,8 +285,8 @@ export default function Products() {
         <tbody>
           {filteredList.map((p, idx) => (
             <tr key={p.id}>
-              <td>{p.name}</td>
-              <td>{`R$${p.price}`}</td>
+              <td>{p.nome}</td>
+              <td>{`R$${p.preco}`}</td>
 
               {p.manageStock ? <td>{p.currentStock}</td> : <td>0</td>}
 
@@ -312,7 +312,7 @@ export default function Products() {
                       type="button"
                       onClick={() => toggleStockHistoryModal(p)}
                     >
-                      Visualizar histórico do estoque de {p.name}
+                      Visualizar histórico do estoque de {p.nome}
                     </DropdownItem>
                   </DropdownContent>
                 </DropdownList>
@@ -326,7 +326,7 @@ export default function Products() {
       <ConfirmModal
         isOpen={modalOpen.deleteModal}
         title="Excluir produto"
-        msg={`Deseja realmente excluir o produto ${product.name}?`}
+        msg={`Deseja realmente excluir o produto ${product.nome}?`}
         handleClose={() => toggleDeleteModal()}
         handleConfirm={() => handleDelete(product)}
       />
@@ -349,8 +349,8 @@ export default function Products() {
         <p>Preço</p>
         <input
           type="number"
-          value={product.price}
-          onChange={e => setProduct({ ...product, price: e.target.value })}
+          value={product.preco}
+          onChange={e => setProduct({ ...product, preco: e.target.value })}
         />
 
         <CheckboxContainer>
@@ -392,7 +392,7 @@ export default function Products() {
         overlayClassName="modal-overlay"
       >
         <div className="header">
-          <p>Histórico de estoque de {product.name}</p>
+          <p>Histórico de estoque de {product.nome}</p>
           <FiX
             size={24}
             color="#837B7B"
