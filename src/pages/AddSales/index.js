@@ -22,8 +22,9 @@ import { SelectClientModal } from '../../styles/modal';
 import ClientController from '../../controllers/ClientController';
 import ProductController from '../../controllers/ProductController';
 import SaleController from '../../controllers/SaleController';
+import SaleProductController from '../../controllers/SaleProductController';
 
-import { errorMsg } from '../../helpers/Growl';
+import { successMsg, errorMsg } from '../../helpers/Growl';
 
 export default function AddSales() {
   const growl = useRef(null);
@@ -51,12 +52,12 @@ export default function AddSales() {
   // Prevent AutoComplete from clearing its values automatically
   const [product, setProduct] = useState({ nome: '', quantidade: 1 });
 
-  const [products, setProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
 
   useEffect(() => {
     async function fetchProducts() {
       const products = await ProductController.index();
-      setProducts(products);
+      setAllProducts(products);
     }
 
     fetchProducts();
@@ -73,7 +74,7 @@ export default function AddSales() {
 
   // Setting Autocomplete suggestions
   function suggestsProducts(event) {
-    const suggestionResults = products.filter(productSuggestion =>
+    const suggestionResults = allProducts.filter(productSuggestion =>
       productSuggestion.nome.toLowerCase().startsWith(event.query.toLowerCase())
     );
 
@@ -86,18 +87,36 @@ export default function AddSales() {
     setValues({ ...values, totalProducts: newTotal });
   }
 
+  function resetSale() {
+    setSale({
+      paymentMethod: 'unpaid',
+      hasDiscount: false,
+      products: [],
+      client: { nome: '' },
+      total: new Big('0'),
+    });
+
+    setValues({
+      totalProducts: new Big('0.00'),
+      totalPaid: new Big('0.00'),
+      discount: new Big('0.00'),
+    });
+
+    document.getElementById('discount').value = '';
+  }
+
   function addProductToList(event) {
     // checks if enter was pressed
     if (event.keyCode === 13) {
-      for (let i = 0; i < products.length; i++) {
-        if (products[i].nome.includes(event.target.value)) {
+      for (let i = 0; i < allProducts.length; i++) {
+        if (allProducts[i].nome.includes(event.target.value)) {
           // checking if the user entered an invalid number
           if (product.quantidade.length === 0 || product.quantidade < 1) {
             product.quantidade = 1;
           }
-          incrementTotal(products[i].preco, product.quantidade);
+          incrementTotal(allProducts[i].preco, product.quantidade);
           sale.products.push({
-            ...products[i],
+            ...allProducts[i],
             quantidade: product.quantidade,
           });
           setProduct({ nome: '', quantidade: 1 });
@@ -133,7 +152,18 @@ export default function AddSales() {
 
   function addSale() {
     if (validateSale()) {
-      SaleController.create({ ...sale, ...values });
+      SaleController.create({ ...sale, ...values }).then(
+        saleData =>
+          // Sale is created, now is time to add the products in it
+          SaleProductController.create(saleData.id, sale.products).then(
+            () => {
+              successMsg(growl, 'Venda adicionada com sucesso');
+              resetSale();
+            },
+            () => errorMsg(growl, 'Ocorre um erro ao adicionar os produtos')
+          ),
+        () => errorMsg(growl, 'Ocorreu um erro ao adicionar venda')
+      );
     }
   }
 
@@ -286,8 +316,7 @@ export default function AddSales() {
                 value={product.quantidade}
                 keyfilter="int"
                 onChange={e =>
-                  setProduct({ ...product, quantidade: e.target.value })
-                }
+                  setProduct({ ...product, quantidade: e.target.value })}
               />
               <button
                 type="button"
@@ -372,6 +401,7 @@ export default function AddSales() {
             </div>
             {sale.paymentMethod === 'partially' ? (
               <InputText
+                id="paidValue"
                 placeholder="Digite o valor pago"
                 onChange={changeTotalPaid}
               />

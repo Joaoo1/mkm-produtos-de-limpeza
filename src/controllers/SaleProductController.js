@@ -22,6 +22,18 @@ const SaleProductController = {
 
     return sales;
   },
+
+  create(saleId, products) {
+    const promises = products.map(product => {
+      product.preco = product.preco.toFixed(2);
+      return Firestore.collection(COL_SALES)
+        .doc(saleId)
+        .collection(SUBCOL_SALE_PRODUCTS)
+        .add(product);
+    });
+
+    return Promise.all([...promises]);
+  },
 };
 
 export default SaleProductController;
