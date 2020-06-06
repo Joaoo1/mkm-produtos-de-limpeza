@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Big from 'big.js';
 import { Growl } from 'primereact/growl';
 import { Checkbox } from 'primereact/checkbox';
 import {
@@ -26,6 +27,8 @@ import ConfirmModal from '../../components/ConfirmModal';
 // Database Controller imports
 import ProductController from '../../controllers/ProductController';
 import StockHistoryController from '../../controllers/StockHistoryController';
+
+import { successMsg, errorMsg } from '../../helpers/Growl';
 
 export default function Products() {
   const growl = useRef(null);
@@ -68,6 +71,17 @@ export default function Products() {
         prod.nome.toLowerCase().includes(event.target.value.toLowerCase())
       )
     );
+  }
+
+  function setPrice(event) {
+    if (
+      event.target.value.length === 0 ||
+      Number.isNaN(Number(event.target.value))
+    ) {
+      setProduct({ ...product, preco: event.target.value });
+    } else {
+      setProduct({ ...product, preco: new Big(event.target.value) });
+    }
   }
 
   // Modal functions
@@ -114,12 +128,12 @@ export default function Products() {
 
   // Validating nome and preco fields and if product already exists
   function validateForm() {
-    if (product.newName.length === 0 || Number(product.preco) === 0) {
-      growl.current.show({
-        severity: 'error',
-        summary: `Preencha os campos corretamente!`,
-      });
-
+    if (
+      product.newName.length === 0 ||
+      Number(product.preco) === 0 ||
+      Number.isNaN(Number(product.preco))
+    ) {
+      errorMsg(growl, `Preencha os campos corretamente!`);
       return false;
     }
 
@@ -142,11 +156,7 @@ export default function Products() {
     });
 
     if (productAlreadyExists) {
-      growl.current.show({
-        severity: 'error',
-        summary: `Produto já cadastrado no sistema!`,
-      });
-
+      errorMsg(growl, `Produto já cadastrado no sistema!`);
       return false;
     }
 
@@ -163,16 +173,9 @@ export default function Products() {
       ProductController.update(product).then(
         () => {
           fetchProducts();
-          growl.current.show({
-            severity: 'success',
-            summary: `${product.newName} atualizado com sucesso`,
-          });
+          successMsg(growl, `${product.newName} atualizado com sucesso`);
         },
-        () =>
-          growl.current.show({
-            severity: 'error',
-            summary: `Ocorreu um erro ao atualizar produto`,
-          })
+        () => errorMsg(growl, `Ocorreu um erro ao atualizar produto`)
       );
       closeModal();
       cleanUpProductObject();
@@ -180,16 +183,9 @@ export default function Products() {
       ProductController.create(product).then(
         () => {
           fetchProducts();
-          growl.current.show({
-            severity: 'success',
-            summary: `${product.newName} adicionado com sucesso`,
-          });
+          successMsg(growl, `${product.newName} adicionado com sucesso`);
         },
-        () =>
-          growl.current.show({
-            severity: 'error',
-            summary: `Ocorreu um erro ao adicionar produto`,
-          })
+        () => errorMsg(growl, `Ocorreu um erro ao adicionar produto`)
       );
       closeModal();
       cleanUpProductObject();
@@ -200,16 +196,9 @@ export default function Products() {
     ProductController.delete(p.id).then(
       () => {
         fetchProducts();
-        growl.current.show({
-          severity: 'success',
-          summary: `${product.nome} excluido com sucesso`,
-        });
+        successMsg(growl, `${product.nome} excluido com sucesso`);
       },
-      () =>
-        growl.current.show({
-          severity: 'error',
-          summary: `Ocorreu um erro ao excluir produto`,
-        })
+      () => errorMsg(growl, `Ocorreu um erro ao excluir produto`)
     );
     setModalOpen({ ...modalOpen, deleteModal: false });
     cleanUpProductObject();
@@ -349,8 +338,12 @@ export default function Products() {
         <p>Preço</p>
         <input
           type="number"
-          value={product.preco}
-          onChange={e => setProduct({ ...product, preco: e.target.value })}
+          value={
+            typeof product.preco === 'string'
+              ? product.preco
+              : product.preco.toFixed(2)
+          }
+          onChange={setPrice}
         />
 
         <CheckboxContainer>
@@ -360,7 +353,8 @@ export default function Products() {
               setProduct({
                 ...product,
                 manageStock: !product.manageStock,
-              })}
+              })
+            }
           />
           Gerenciar estoque
         </CheckboxContainer>
