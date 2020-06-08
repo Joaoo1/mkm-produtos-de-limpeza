@@ -67,4 +67,9 @@ export default createGlobalStyle`
   .ReactModal__Overlay--before-close{
     opacity: 0;
   }
+
+  .flex-nowrap {
+    display: flex;
+    flex-wrap: nowrap;
+  }
 `;
