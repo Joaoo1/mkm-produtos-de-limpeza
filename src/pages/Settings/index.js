@@ -16,54 +16,74 @@ import NeighborhoodController from '../../controllers/NeighborhoodController';
 import CityController from '../../controllers/CityController';
 
 export default function Settings() {
-  const STREET = 'rua';
-  const NEIGHBORHOOD = 'bairro';
-  const CITY = 'cidade';
-
   const growl = useRef(null);
 
-  const [addressList, setAddressList] = useState([]);
+  // const [addressList, setAddressList] = useState([]);
 
-  function handleAddAddress(value, type) {
-    let query;
-
-    switch (type) {
-      case STREET:
-        query = StreetController.index();
-        break;
-
-      case NEIGHBORHOOD:
-        query = NeighborhoodController.index();
-        break;
-
-      case CITY:
-        query = CityController.index();
-        break;
-
-      default:
-        errorMsg(growl, 'Ocorreu um erro');
-        return;
-    }
-
-    query.then(data => {
+  function handleAddStreet() {
+    const { value } = document.getElementById('input-street');
+    StreetController.index().then(data => {
       const allRegisters = data.docs.map(snapshot => {
-        return { ...snapshot.data(), id: snapshot.id };
+        return snapshot.data().nome_rua.toLowerCase();
       });
-
-      if (allRegisters.includes(value)) {
-        errorMsg(
-          growl,
-          `Ess${type === NEIGHBORHOOD ? 'e' : 'a'} rua já está cadastrada`
-        );
+      if (allRegisters.includes(value.toLowerCase())) {
+        errorMsg(growl, `Essa rua já está cadastrada`);
         return;
       }
 
-      StreetController.create(value).then(
-        () => successMsg(growl, 'Rua cadastrada com sucesso'),
+      StreetController.create({ nome_rua: value }).then(
+        () => {
+          successMsg(growl, 'Rua cadastrada com sucesso');
+          document.getElementById('input-street').value = '';
+        },
         () => errorMsg(growl, 'Ocorreu um erro ao cadastrar rua')
       );
     });
   }
+
+  function handleAddNeighborhood() {
+    const { value } = document.getElementById('input-neighborhood');
+    NeighborhoodController.index().then(data => {
+      const allRegisters = data.docs.map(snapshot => {
+        return snapshot.data().nome_bairro.toLowerCase();
+      });
+
+      if (allRegisters.includes(value.toLowerCase())) {
+        errorMsg(growl, `Esse bairro já está cadastrado`);
+        return;
+      }
+
+      NeighborhoodController.create({ nome_bairro: value }).then(
+        () => {
+          successMsg(growl, 'Bairro cadastrado com sucesso');
+          document.getElementById('input-neighborhood').value = '';
+        },
+        () => errorMsg(growl, 'Ocorreu um erro ao cadastrar bairro')
+      );
+    });
+  }
+
+  function handleAddCity() {
+    const { value } = document.getElementById('input-city');
+    CityController.index().then(data => {
+      const allRegisters = data.docs.map(snapshot => {
+        return snapshot.data().nome_cidade.toLowerCase();
+      });
+      if (allRegisters.includes(value.toLowerCase())) {
+        errorMsg(growl, `Essa cidade já está cadastrada`);
+        return;
+      }
+
+      CityController.create({ nome_cidade: value }).then(
+        () => {
+          successMsg(growl, 'Cidade cadastrada com sucesso');
+          document.getElementById('input-city').value = '';
+        },
+        () => errorMsg(growl, 'Ocorreu um erro ao cadastrar rua')
+      );
+    });
+  }
+
   return (
     <>
       <Growl ref={growl} />
@@ -77,13 +97,8 @@ export default function Settings() {
               id="input-street"
               placeholder="Digite aqui para cadastrar uma rua"
             />
-            <AddButton>
-              <FiPlus
-                size={30}
-                onClick={e => handleAddAddress(e.target.value, STREET)}
-                color="white"
-                title="Cadastrar rua"
-              />
+            <AddButton onClick={handleAddStreet}>
+              <FiPlus size={30} color="white" title="Cadastrar rua" value="" />
             </AddButton>
             <EditButton>
               <FiEdit
@@ -112,7 +127,7 @@ export default function Settings() {
               id="input-neighborhood"
               placeholder="Digite aqui para cadastrar um bairro"
             />
-            <AddButton>
+            <AddButton onClick={handleAddNeighborhood}>
               <FiPlus
                 size={26}
                 onClick={() => {}}
@@ -147,13 +162,8 @@ export default function Settings() {
               id="input-city"
               placeholder="Digite aqui para cadastrar uma cidade"
             />
-            <AddButton>
-              <FiPlus
-                size={30}
-                onClick={() => {}}
-                color="white"
-                title="Cadastrar cidade"
-              />
+            <AddButton onClick={handleAddCity}>
+              <FiPlus size={30} color="white" title="Cadastrar cidade" />
             </AddButton>
             <EditButton>
               <FiEdit

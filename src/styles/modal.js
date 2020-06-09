@@ -66,6 +66,16 @@ const ClientModal = styled(BaseModal)`
       margin-right: 15px;
     }
   }
+
+  .p-autocomplete {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+
+    button {
+      height: var(--height-button);
+    }
+  }
 `;
 
 const SaleModal = styled(BaseModal)``;

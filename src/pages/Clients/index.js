@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FiMoreVertical, FiX, FiCheckSquare, FiEdit } from 'react-icons/fi';
 import { Growl } from 'primereact/growl';
+import { AutoComplete } from 'primereact/autocomplete';
+import { InputText } from 'primereact/inputtext';
 import { successMsg, errorMsg, infoMsg } from '../../helpers/Growl';
 
 import {
@@ -23,6 +25,9 @@ import ConfirmModal from '../../components/ConfirmModal';
 import ClientController from '../../controllers/ClientController';
 import ClientSalesController from '../../controllers/ClientSalesController';
 import SaleController from '../../controllers/SaleController';
+import StreetController from '../../controllers/StreetController';
+import NeighborhoodController from '../../controllers/NeighborhoodController';
+import CityController from '../../controllers/CityController';
 
 import Client from '../../models/Client';
 
@@ -42,10 +47,45 @@ export default function Clients() {
   const [filteredList, setFilteredList] = useState([]);
   const [clientSalesList, setClientSalesList] = useState([]);
 
+  const [addresses, setAddresses] = useState({
+    streets: [],
+    neighborhoods: [],
+    cities: [],
+  });
+
+  const [streetSuggestions, setStreetSuggestions] = useState([]);
+  const [neighborhoodSuggestions, setNeighborhoodSuggestions] = useState([]);
+  const [citySuggestions, setCitySuggestions] = useState([]);
+
   async function fetchClients() {
     const clients = await ClientController.index();
     setClientList(clients);
     setFilteredList(clients);
+  }
+
+  async function fetchAddresses() {
+    const promiseStreet = StreetController.index();
+    const promiseNeighborhood = NeighborhoodController.index();
+    const promiseCity = CityController.index();
+    Promise.all([promiseStreet, promiseNeighborhood, promiseCity]).then(
+      response => {
+        const allStreets = response[0].docs.map(
+          snapshot => snapshot.data().nome_rua
+        );
+        const allNeighborhoods = response[1].docs.map(
+          snapshot => snapshot.data().nome_bairro
+        );
+        const allCities = response[2].docs.map(
+          snapshot => snapshot.data().nome_cidade
+        );
+
+        setAddresses({
+          streets: allStreets,
+          neighborhoods: allNeighborhoods,
+          cities: allCities,
+        });
+      }
+    );
   }
 
   useEffect(() => {
@@ -60,15 +100,47 @@ export default function Clients() {
     );
   }
 
+  // Handle addresses suggestions
+  function suggestsStreets(event) {
+    const suggestionResults = addresses.streets.filter(street =>
+      street.toLowerCase().startsWith(event.query.toLowerCase())
+    );
+
+    setStreetSuggestions(suggestionResults);
+  }
+
+  function suggestsNeighborhoods(event) {
+    const suggestionResults = addresses.neighborhoods.filter(neighborhood =>
+      neighborhood.toLowerCase().startsWith(event.query.toLowerCase())
+    );
+
+    setNeighborhoodSuggestions(suggestionResults);
+  }
+
+  function suggestsCities(event) {
+    const suggestionResults = addresses.cities.filter(cities =>
+      cities.toLowerCase().startsWith(event.query.toLowerCase())
+    );
+
+    setCitySuggestions(suggestionResults);
+  }
+
   // Modal functions
   function closeModal() {
     setModalOpen({ ...modalOpen, addEditModal: false });
   }
 
   function openModal(c) {
-    // If client is null add a new one, otherwise edit
+    if (
+      addresses.streets.length === 0 ||
+      addresses.neighborhoods.length === 0 ||
+      addresses.cities.length === 0
+    ) {
+      fetchAddresses();
+    }
     if (!c) {
-      setClient(new Client({}));
+      // If client is null add a new one, otherwise edit
+      setClient(new Client());
       setModalTitle('Cadastrar novo cliente');
       setModalOpen({ ...modalOpen, addEditModal: true });
     } else {
@@ -105,6 +177,27 @@ export default function Clients() {
   function validateForm() {
     if (client.nome.length === 0) {
       errorMsg(growl, 'Digite o nome do cliente');
+      return false;
+    }
+
+    if (
+      client.endereco.length > 0 &&
+      !addresses.streets.includes(client.endereco)
+    ) {
+      errorMsg(growl, 'Rua não encontrada');
+      return false;
+    }
+
+    if (
+      client.bairro.length > 0 &&
+      !addresses.neighborhoods.includes(client.bairro)
+    ) {
+      errorMsg(growl, 'Bairro não encontrado');
+      return false;
+    }
+
+    if (client.cidade.length > 0 && !addresses.cities.includes(client.cidade)) {
+      errorMsg(growl, 'Cidade não encontrada');
       return false;
     }
 
@@ -193,7 +286,9 @@ export default function Clients() {
             return (
               <tr key={c.id}>
                 <td>{c.nome}</td>
-                <td>{`${c.endereco}, ${c.complemento}`}</td>
+                <td>
+                  {c.endereco}, {c.complemento}
+                </td>
                 <td>{c.bairro}</td>
                 <td>{c.cidade}</td>
                 <td>{c.telefone}</td>
@@ -229,38 +324,53 @@ export default function Clients() {
         <h2>{modalTitle}</h2>
         <hr />
         <p>Nome</p>
-        <input
+        <InputText
           value={client.nome}
+          placeholder="Digite o nome do cliente"
           onChange={e => setClient({ ...client, nome: e.target.value })}
         />
         <p>Rua</p>
-        <input
+        <AutoComplete
+          dropdown
           value={client.endereco}
           onChange={e => setClient({ ...client, endereco: e.target.value })}
+          suggestions={streetSuggestions}
+          completeMethod={suggestsStreets}
+          placeholder="Digite o nome da rua"
         />
         <p>Complemento</p>
-        <input
+        <InputText
           value={client.complemento}
           onChange={e => setClient({ ...client, complemento: e.target.value })}
+          placeholder="Digite o complemento do endereço"
         />
         <p>Bairro</p>
-        <input
+        <AutoComplete
+          dropdown
           value={client.bairro}
           onChange={e => setClient({ ...client, bairro: e.target.value })}
+          suggestions={neighborhoodSuggestions}
+          completeMethod={suggestsNeighborhoods}
+          placeholder="Digite o nome do bairro"
         />
         <div className="input-city-container">
           <div>
             <p>Cidade</p>
-            <input
+            <AutoComplete
+              dropdown
               value={client.cidade}
               onChange={e => setClient({ ...client, cidade: e.target.value })}
+              suggestions={citySuggestions}
+              completeMethod={suggestsCities}
+              placeholder="Digite o nome da cidade"
             />
           </div>
           <div>
             <p>Telefone</p>
-            <input
+            <InputText
               value={client.telefone}
               onChange={e => setClient({ ...client, telefone: e.target.value })}
+              placeholder="Digite o telefone do cliente"
             />
           </div>
         </div>
@@ -287,8 +397,8 @@ export default function Clients() {
         isOpen={modalOpen.deleteModal}
         title="Excluir cliente"
         msg={`Deseja realmente excluir o cliente ${client.nome}?`}
-        handleClose={() => toogleDeleteModal(null)}
         handleConfirm={() => handleDelete(client.id)}
+        handleClose={() => toogleDeleteModal(null)}
       />
 
       {/* Purchases made modal */}
