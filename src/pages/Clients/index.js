@@ -64,21 +64,16 @@ export default function Clients() {
   }
 
   async function fetchAddresses() {
-    const promiseStreet = StreetController.index();
-    const promiseNeighborhood = NeighborhoodController.index();
-    const promiseCity = CityController.index();
+    const promiseStreet = await StreetController.index();
+    const promiseNeighborhood = await NeighborhoodController.index();
+    const promiseCity = await CityController.index();
     Promise.all([promiseStreet, promiseNeighborhood, promiseCity]).then(
       response => {
-        const allStreets = response[0].docs.map(
-          snapshot => snapshot.data().nome_rua
+        const allStreets = response[0].map(street => street.name);
+        const allNeighborhoods = response[1].map(
+          neighborhood => neighborhood.name
         );
-        const allNeighborhoods = response[1].docs.map(
-          snapshot => snapshot.data().nome_bairro
-        );
-        const allCities = response[2].docs.map(
-          snapshot => snapshot.data().nome_cidade
-        );
-
+        const allCities = response[2].map(city => city.name);
         setAddresses({
           streets: allStreets,
           neighborhoods: allNeighborhoods,

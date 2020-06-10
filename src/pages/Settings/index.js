@@ -1,14 +1,16 @@
 import React, { useState, useRef } from 'react';
-import { FiPlus, FiEdit, FiTrash2 } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiX, FiTrash2, FiClipboard } from 'react-icons/fi';
 import { InputText } from 'primereact/inputtext';
 import { Growl } from 'primereact/growl';
 import { errorMsg, successMsg } from '../../helpers/Growl';
 
 import {
-  PrimaryButton as AddButton,
-  SecondaryButton as EditButton,
-  WarningButton as DeleteButton,
-} from '../../styles/button';
+  SelectClientModal as SelectAddressModal,
+  ModalButtonsContainer,
+  EditAddressModal,
+} from '../../styles/modal';
+
+import { PrimaryButton, SecondaryButton } from '../../styles/button';
 import { AddressContainer, ManageAddress } from './styles';
 
 import StreetController from '../../controllers/StreetController';
@@ -16,78 +18,258 @@ import NeighborhoodController from '../../controllers/NeighborhoodController';
 import CityController from '../../controllers/CityController';
 
 export default function Settings() {
+  const STREET = 'rua';
+  const NEIGHBORHOOD = 'bairro';
+  const CITY = 'cidade';
+
   const growl = useRef(null);
+  SelectAddressModal.setAppElement('#root');
+  EditAddressModal.setAppElement('#root');
 
-  // const [addressList, setAddressList] = useState([]);
+  const [editAddressModal, setEditAddressModal] = useState({
+    isOpen: false,
+    name: '',
+    id: '',
+  });
 
-  function handleAddStreet() {
+  const [selectAddressModal, setSelectAddressModal] = useState({
+    isOpen: false,
+    type: '',
+  });
+  const [addressList, setAddressList] = useState([]);
+  const [filteredAddressList, setFilteredAddressList] = useState([]);
+
+  async function fetchAddresses(type) {
+    if (type === STREET) {
+      const allStreets = await StreetController.index();
+      setAddressList(allStreets);
+      setFilteredAddressList(allStreets);
+    } else if (type === NEIGHBORHOOD) {
+      const allNeighborhoods = await NeighborhoodController.index();
+      setAddressList(allNeighborhoods);
+      setFilteredAddressList(allNeighborhoods);
+    } else if (type === CITY) {
+      const allCities = await CityController.index();
+      setAddressList(allCities);
+      setFilteredAddressList(allCities);
+    }
+  }
+
+  function filterAddressList(event) {
+    setFilteredAddressList(
+      addressList.filter(address =>
+        address.name.toLowerCase().includes(event.target.value)
+      )
+    );
+  }
+
+  async function toggleSelectAddressModal(type) {
+    if (selectAddressModal.isOpen) {
+      setSelectAddressModal({ ...selectAddressModal, isOpen: false });
+      setAddressList([]);
+      return;
+    }
+    fetchAddresses(type);
+    setSelectAddressModal({ ...selectAddressModal, type, isOpen: true });
+  }
+
+  function toggleEditAddressModal(address) {
+    if (editAddressModal.isOpen) {
+      setEditAddressModal({ ...editAddressModal, isOpen: false });
+      return;
+    }
+
+    setEditAddressModal({ name: address.name, id: address.id, isOpen: true });
+  }
+
+  async function handleAddStreet() {
     const { value } = document.getElementById('input-street');
-    StreetController.index().then(data => {
-      const allRegisters = data.docs.map(snapshot => {
-        return snapshot.data().nome_rua.toLowerCase();
-      });
-      if (allRegisters.includes(value.toLowerCase())) {
-        errorMsg(growl, `Essa rua já está cadastrada`);
-        return;
-      }
+    const allStreets = await StreetController.index();
+    if (allStreets.includes(value.toLowerCase())) {
+      errorMsg(growl, `Essa rua já está cadastrada`);
+      return;
+    }
 
-      StreetController.create({ nome_rua: value }).then(
-        () => {
-          successMsg(growl, 'Rua cadastrada com sucesso');
-          document.getElementById('input-street').value = '';
-        },
-        () => errorMsg(growl, 'Ocorreu um erro ao cadastrar rua')
-      );
-    });
+    StreetController.create({ nome_rua: value }).then(
+      () => {
+        successMsg(growl, 'Rua cadastrada com sucesso');
+        document.getElementById('input-street').value = '';
+      },
+      () => errorMsg(growl, 'Ocorreu um erro ao cadastrar rua')
+    );
   }
 
-  function handleAddNeighborhood() {
+  async function handleAddNeighborhood() {
     const { value } = document.getElementById('input-neighborhood');
-    NeighborhoodController.index().then(data => {
-      const allRegisters = data.docs.map(snapshot => {
-        return snapshot.data().nome_bairro.toLowerCase();
-      });
 
-      if (allRegisters.includes(value.toLowerCase())) {
-        errorMsg(growl, `Esse bairro já está cadastrado`);
-        return;
-      }
+    const allNeighborhoods = await NeighborhoodController.index();
+    if (allNeighborhoods.includes(value.toLowerCase())) {
+      errorMsg(growl, `Esse bairro já está cadastrado`);
+      return;
+    }
 
-      NeighborhoodController.create({ nome_bairro: value }).then(
-        () => {
-          successMsg(growl, 'Bairro cadastrado com sucesso');
-          document.getElementById('input-neighborhood').value = '';
-        },
-        () => errorMsg(growl, 'Ocorreu um erro ao cadastrar bairro')
-      );
-    });
+    NeighborhoodController.create({ nome_bairro: value }).then(
+      () => {
+        successMsg(growl, 'Bairro cadastrado com sucesso');
+        document.getElementById('input-neighborhood').value = '';
+      },
+      () => errorMsg(growl, 'Ocorreu um erro ao cadastrar bairro')
+    );
   }
 
-  function handleAddCity() {
+  async function handleAddCity() {
     const { value } = document.getElementById('input-city');
-    CityController.index().then(data => {
-      const allRegisters = data.docs.map(snapshot => {
-        return snapshot.data().nome_cidade.toLowerCase();
-      });
-      if (allRegisters.includes(value.toLowerCase())) {
-        errorMsg(growl, `Essa cidade já está cadastrada`);
-        return;
+    const allCities = await CityController.index();
+    if (allCities.includes(value.toLowerCase())) {
+      errorMsg(growl, `Essa cidade já está cadastrada`);
+      return;
+    }
+
+    CityController.create({ nome_cidade: value }).then(
+      () => {
+        successMsg(growl, 'Cidade cadastrada com sucesso');
+        document.getElementById('input-city').value = '';
+      },
+      () => errorMsg(growl, 'Ocorreu um erro ao cadastrar rua')
+    );
+  }
+
+  function handleEditAddress() {
+    const controller = () => {
+      if (selectAddressModal.type === STREET) {
+        return StreetController;
+      }
+      if (selectAddressModal.type === NEIGHBORHOOD) {
+        return NeighborhoodController;
+      }
+      if (selectAddressModal.type === CITY) {
+        return CityController;
       }
 
-      CityController.create({ nome_cidade: value }).then(
-        () => {
-          successMsg(growl, 'Cidade cadastrada com sucesso');
-          document.getElementById('input-city').value = '';
-        },
-        () => errorMsg(growl, 'Ocorreu um erro ao cadastrar rua')
-      );
-    });
+      return null;
+    };
+
+    if (!controller()) return;
+
+    controller()
+      .update(editAddressModal.name, editAddressModal.id)
+      .then(() => {
+        successMsg(growl, 'Editado com sucesso');
+        fetchAddresses(selectAddressModal.type);
+        setEditAddressModal({ ...editAddressModal, isOpen: false });
+      });
+  }
+
+  function handleDeleteAddress(id) {
+    switch (selectAddressModal.type) {
+      case STREET:
+        StreetController.delete(id).then(() => {
+          successMsg(growl, 'Excluido com sucesso');
+          fetchAddresses(selectAddressModal.type);
+        });
+        break;
+      case NEIGHBORHOOD:
+        NeighborhoodController.delete(id).then(() => {
+          successMsg(growl, 'Excluido com sucesso');
+          fetchAddresses(selectAddressModal.type);
+        });
+        break;
+      case CITY:
+        CityController.delete(id).then(() => {
+          successMsg(growl, 'Excluido com sucesso');
+          fetchAddresses(selectAddressModal.type);
+        });
+        break;
+      default:
+        errorMsg(growl, 'Ocorreu um erro ao excluir endereço');
+    }
   }
 
   return (
     <>
       <Growl ref={growl} />
       <AddressContainer>
+        <SelectAddressModal
+          isOpen={selectAddressModal.isOpen}
+          onRequestClose={toggleSelectAddressModal}
+          closeTimeoutMS={450}
+          overlayClassName="modal-overlay"
+        >
+          <header className="p-grid p-justify-between">
+            <h2>{`Editar ${selectAddressModal.type}s`}</h2>
+            <FiX size={28} onClick={toggleSelectAddressModal} />
+          </header>
+          <hr />
+          <InputText
+            placeholder="Digite aqui para buscar"
+            onChange={filterAddressList}
+          />
+          <table>
+            <thead>
+              <tr>
+                <th colSpan="2">Nome</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredAddressList.length > 0 &&
+                filteredAddressList.map(address => {
+                  return (
+                    <tr key={address.id}>
+                      <td>{address.name}</td>
+                      <td>
+                        <FiTrash2
+                          color="red"
+                          size={24}
+                          title={`Excluir ${selectAddressModal.type}`}
+                          onClick={() => handleDeleteAddress(address.id)}
+                        />
+                        <FiEdit
+                          size={24}
+                          onClick={() => toggleEditAddressModal(address)}
+                          title={`Editar ${selectAddressModal.type}`}
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </table>
+
+          <EditAddressModal
+            isOpen={editAddressModal.isOpen}
+            onRequestClose={toggleEditAddressModal}
+            closeTimeoutMS={450}
+            overlayClassName="modal-overlay"
+          >
+            <header className="p-grid p-justify-between">
+              <h2>Editar</h2>
+              <FiX size={28} />
+            </header>
+            <hr />
+            <InputText
+              id="input-edit-address"
+              value={editAddressModal.name}
+              onChange={e =>
+                setEditAddressModal({
+                  ...editAddressModal,
+                  name: e.target.value,
+                })
+              }
+            />
+            <hr />
+            <ModalButtonsContainer>
+              <SecondaryButton onClick={toggleSelectAddressModal}>
+                Fechar
+              </SecondaryButton>
+              <PrimaryButton
+                onClick={() => handleEditAddress(selectAddressModal.type)}
+              >
+                Salvar
+              </PrimaryButton>
+            </ModalButtonsContainer>
+          </EditAddressModal>
+        </SelectAddressModal>
+
         <h2>Gerenciar endereços</h2>
         <hr className="full" />
         <ManageAddress>
@@ -97,25 +279,17 @@ export default function Settings() {
               id="input-street"
               placeholder="Digite aqui para cadastrar uma rua"
             />
-            <AddButton onClick={handleAddStreet}>
+            <PrimaryButton onClick={handleAddStreet}>
               <FiPlus size={30} color="white" title="Cadastrar rua" value="" />
-            </AddButton>
-            <EditButton>
-              <FiEdit
+            </PrimaryButton>
+            <SecondaryButton>
+              <FiClipboard
                 size={30}
-                onClick={() => {}}
+                onClick={() => toggleSelectAddressModal(STREET)}
                 color="white"
                 title="Editar ruas"
               />
-            </EditButton>
-            <DeleteButton>
-              <FiTrash2
-                size={30}
-                onClick={() => {}}
-                color="white"
-                title="Excluir ruas"
-              />
-            </DeleteButton>
+            </SecondaryButton>
           </div>
         </ManageAddress>
 
@@ -127,30 +301,22 @@ export default function Settings() {
               id="input-neighborhood"
               placeholder="Digite aqui para cadastrar um bairro"
             />
-            <AddButton onClick={handleAddNeighborhood}>
+            <PrimaryButton onClick={handleAddNeighborhood}>
               <FiPlus
                 size={26}
                 onClick={() => {}}
                 color="white"
                 title="Cadastrar bairro"
               />
-            </AddButton>
-            <EditButton>
-              <FiEdit
+            </PrimaryButton>
+            <SecondaryButton>
+              <FiClipboard
                 size={26}
-                onClick={() => {}}
+                onClick={() => toggleSelectAddressModal(NEIGHBORHOOD)}
                 color="white"
                 title="Editar bairro"
               />
-            </EditButton>
-            <DeleteButton>
-              <FiTrash2
-                size={26}
-                onClick={() => {}}
-                color="white"
-                title="Excluir bairro"
-              />
-            </DeleteButton>
+            </SecondaryButton>
           </div>
         </ManageAddress>
 
@@ -162,25 +328,17 @@ export default function Settings() {
               id="input-city"
               placeholder="Digite aqui para cadastrar uma cidade"
             />
-            <AddButton onClick={handleAddCity}>
+            <PrimaryButton onClick={handleAddCity}>
               <FiPlus size={30} color="white" title="Cadastrar cidade" />
-            </AddButton>
-            <EditButton>
-              <FiEdit
+            </PrimaryButton>
+            <SecondaryButton>
+              <FiClipboard
                 size={30}
-                onClick={() => {}}
+                onClick={() => toggleSelectAddressModal(CITY)}
                 color="white"
                 title="Editar cidade"
               />
-            </EditButton>
-            <DeleteButton>
-              <FiTrash2
-                size={30}
-                onClick={() => {}}
-                color="white"
-                title="Excluir cidade"
-              />
-            </DeleteButton>
+            </SecondaryButton>
           </div>
         </ManageAddress>
 

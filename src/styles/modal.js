@@ -159,6 +159,13 @@ const PurchasesMadeModal = styled(BaseModal)`
   width: 700px;
 `;
 
+const EditAddressModal = styled(BaseModal)`
+  height: 220px;
+  input {
+    width: 100%;
+  }
+`;
+
 export default BaseModal;
 export {
   ProductModal,
@@ -167,4 +174,5 @@ export {
   SaleModal,
   SelectClientModal,
   PurchasesMadeModal,
+  EditAddressModal,
 };

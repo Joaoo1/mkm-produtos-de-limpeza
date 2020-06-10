@@ -29,7 +29,7 @@ const ManageAddress = styled.div`
     margin-bottom: 5px;
   }
   input {
-    width: 80%;
+    width: 100%;
     margin-right: 4px;
   }
   button {
