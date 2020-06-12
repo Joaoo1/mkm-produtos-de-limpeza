@@ -113,6 +113,23 @@ const SaleController = {
       .doc(sale.id)
       .update({ ...sale, dataVenda: convertStringToTimeStamp(sale.dataVenda) });
   },
+
+  delete(saleId, idVenda) {
+    Firestore.collection(COL_SALES)
+      .doc(saleId)
+      .collection(SUBCOL_SALE_PRODUCTS)
+      .get()
+      .then(snapshot => {
+        snapshot.docs.forEach(sale => sale.ref.delete());
+      });
+
+    Firestore.collection(COL_SALE_IDS)
+      .where('venda', '==', idVenda)
+      .get()
+      .then(snapshot => snapshot.docs[0].ref.delete());
+
+    return Firestore.collection(COL_SALES).doc(saleId).delete();
+  },
 };
 
 export default SaleController;

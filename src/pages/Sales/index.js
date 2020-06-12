@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Big from 'big.js';
 import { FiMoreVertical } from 'react-icons/fi';
 import { useHistory } from 'react-router-dom';
 
@@ -16,6 +17,8 @@ import {
 import ListHeader from '../../components/ListHeader';
 import ConfirmModal from '../../components/ConfirmModal';
 
+import { successMsg } from '../../helpers/Growl';
+
 export default function Sales() {
   const growl = useRef(null);
 
@@ -27,11 +30,12 @@ export default function Sales() {
   const [sale, setSale] = useState({});
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
+  async function fetchSales() {
+    const sales = await SaleController.index(100);
+    setSalesList(sales);
+  }
+
   useEffect(() => {
-    async function fetchSales() {
-      const sales = await SaleController.index(100);
-      setSalesList(sales);
-    }
     fetchSales();
   }, []);
 
@@ -45,12 +49,30 @@ export default function Sales() {
     }
   }
 
-  function handleHistory(data) {
-    history.push(data);
+  function handleHistory(pathname, state) {
+    state.valorBruto = state.valorBruto
+      ? (state.valorBruto = state.valorBruto.toFixed(2))
+      : new Big(0);
+    state.valorLiquido = state.valorLiquido
+      ? (state.valorLiquido = state.valorLiquido.toFixed(2))
+      : new Big(0);
+    state.valorPago = state.valorPago
+      ? (state.valorPago = state.valorPago.toFixed(2))
+      : new Big(0);
+    state.valorAReceber = state.valorAReceber
+      ? (state.valorAReceber = state.valorAReceber.toFixed(2))
+      : new Big(0);
+    state.desconto = state.desconto
+      ? (state.desconto = state.desconto.toFixed(2))
+      : new Big(0);
+    history.push({ pathname, state });
   }
 
-  function handleDelete(sale1) {
-    SaleController.delete(sale1);
+  function handleDelete(sale, idVenda) {
+    SaleController.delete(sale, idVenda).then(() => {
+      successMsg(growl, 'Venda excluida com sucesso');
+      fetchSales();
+    });
   }
 
   return (
@@ -60,7 +82,6 @@ export default function Sales() {
         btnFunction={() => {
           history.push({
             pathname: '/sales/add',
-            data: { pageTitle: 'Registrar venda' },
           });
         }}
         btnText="Registrar venda"
@@ -109,15 +130,7 @@ export default function Sales() {
                     <DropdownContent>
                       <DropdownItem>Alterar situação de pagamento</DropdownItem>
                       <DropdownItem
-                        onClick={() => {
-                          handleHistory({
-                            pathname: '/sales/add',
-                            data: {
-                              pageTitle: 'Editar venda',
-                              sale: el,
-                            },
-                          });
-                        }}
+                        onClick={() => handleHistory('/sales/edit', el)}
                       >
                         Editar venda
                       </DropdownItem>
@@ -138,7 +151,7 @@ export default function Sales() {
         title="Excluir venda"
         msg={`Deseja realmente excluir a venda ${sale.idVenda}?`}
         handleClose={() => toggleDeleteModal(null)}
-        handleConfirm={() => handleDelete(sale.id)}
+        handleConfirm={() => handleDelete(sale.id, sale.idVenda)}
       />
     </div>
   );
