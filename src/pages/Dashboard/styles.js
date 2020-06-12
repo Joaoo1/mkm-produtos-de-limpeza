@@ -15,7 +15,7 @@ const CardContainer = styled.div`
   display: flex;
   justify-content: space-between;
   border-radius: 5px;
-  margin-top: 30px;
+  margin-top: 4px;
   padding: 5px;
 `;
 
@@ -55,6 +55,9 @@ const SalesChartContainer = styled.div`
   border: 1px solid rgba(0, 73, 98, 0.2);
   margin: 30px 0;
   border-radius: 6px;
+  svg {
+    margin: 5px 5px 5px 10px;
+  }
 `;
 
 const ClientsChartContainer = styled.div`
@@ -66,10 +69,38 @@ const ClientsChartContainer = styled.div`
   }
 `;
 
+const UpdatedAt = styled.div`
+  font-size: 13px;
+  color: gray;
+`;
+
+const RefreshInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin: 15px 15px 10px 0;
+  p {
+    font-size: 16px;
+  }
+
+  svg {
+    margin-left: 5px;
+  }
+`;
+
+const Welcome = styled.div`
+  p {
+    margin: 25px 0 0 15px;
+    font-size: 24px;
+  }
+`;
 export {
   TopSellingProducts,
   CardContainer,
   Card,
   SalesChartContainer,
   ClientsChartContainer,
+  UpdatedAt,
+  RefreshInfo,
+  Welcome,
 };

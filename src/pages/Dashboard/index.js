@@ -1,17 +1,38 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import moment from 'moment';
 import { Chart } from 'primereact/chart';
-import { FiDollarSign, FiPackage, FiUsers } from 'react-icons/fi';
+import { FiDollarSign, FiPackage, FiUsers, FiRefreshCw } from 'react-icons/fi';
 
+import DashboardController from '../../controllers/DashboardController';
 import {
-  TopSellingProducts,
+  // TopSellingProducts,
   CardContainer,
   Card,
   SalesChartContainer,
   ClientsChartContainer,
+  UpdatedAt,
+  RefreshInfo,
+  Welcome,
 } from './styles';
 
 export default function Dashboard() {
-  const clientChartData = {
+  const [salesLast12Months, setSalesLast12Months] = useState({});
+  const [generalInfo, setGeneralInfo] = useState({});
+
+  useEffect(() => {
+    async function fetchGeneralInfo() {
+      const data = await DashboardController.getGeneralinfo();
+      setGeneralInfo(data);
+    }
+    fetchGeneralInfo();
+    async function fetchSalesLast12Months() {
+      const data = await DashboardController.getSalesFromLast12Months();
+      setSalesLast12Months(data);
+    }
+    fetchSalesLast12Months();
+  }, []);
+
+  /* const clientChartData = {
     labels: ['Janeiro', 'Fevereiro', 'Março'],
     datasets: [
       {
@@ -22,30 +43,35 @@ export default function Dashboard() {
         borderColor: '#42A5F5',
       },
     ],
-  };
-
+  }; */
+  function updateGeneralInfo() {
+    DashboardController.getGeneralinfo(true).then(data => {
+      setGeneralInfo(data);
+    });
+  }
+  // Sales from last 12 months
+  function updateSalesLast12Months() {
+    DashboardController.getSalesFromLast12Months(true).then(sales =>
+      setSalesLast12Months({
+        updatedAt: moment(new Date()).format('DD/MM HH:mm'),
+        salesByMonth: sales.data,
+      })
+    );
+  }
   const salesChartData = {
-    labels: [
-      'Jan',
-      'Fev',
-      'Mar',
-      'Abr',
-      'Mai',
-      'Jun',
-      'Jul',
-      'Ago',
-      'Set',
-      'Out',
-      'Nov',
-      'Dez',
-    ],
+    labels: salesLast12Months.salesByMonth
+      ? salesLast12Months.salesByMonth.map(obj => obj.month)
+      : [],
 
     datasets: [
       {
         type: 'bar',
         label: 'Vendas',
         backgroundColor: '#1859ad',
-        data: [340, 213, 132, 465, 345, 432, 123, 678, 467, 574, 267, 734],
+        // data: [340, 213, 132, 465, 345, 432, 123, 678, 467, 574, 267, 734],
+        data: salesLast12Months.salesByMonth
+          ? salesLast12Months.salesByMonth.map(obj => obj.sales)
+          : [],
       },
     ],
   };
@@ -72,47 +98,98 @@ export default function Dashboard() {
 
   return (
     <>
+      <header className="p-grid p-justify-between">
+        <Welcome>
+          <p>Seja bem-vindo</p>
+        </Welcome>
+        <RefreshInfo>
+          <div className="flex-nowrap">
+            <p>Atualizar Informações</p>
+            <FiRefreshCw size={28} onClick={updateGeneralInfo} />
+          </div>
+          <UpdatedAt>{`Atualizado em ${generalInfo.updatedAt}`}</UpdatedAt>
+        </RefreshInfo>
+      </header>
       <CardContainer className="p-grid">
         <Card className="p-col-12 p-md-3">
           <div>
             <p className="card-title">Vendas</p>
-            <p className="card-value">1500</p>
-            <small>20% a mais que mês passado</small>
+            <p className="card-value">
+              {generalInfo.sales ? (
+                generalInfo.sales
+              ) : (
+                <small>Carregando...</small>
+              )}
+            </p>
+            <small>Número total de vendas</small>
+            {/* <small>20% a mais que mês passado</small> */}
           </div>
           <FiDollarSign size={40} />
         </Card>
         <Card className="p-col-12 p-md-3">
           <div>
             <p className="card-title">Clientes</p>
-            <p className="card-value">4500</p>
-            <small>20% a mais que mês passado</small>
+            <p className="card-value">
+              {generalInfo.clients ? (
+                generalInfo.clients
+              ) : (
+                <small>Carregando...</small>
+              )}
+            </p>
+            <small>Número total de clientes</small>
+            {/* <small>20% a mais que mês passado</small> */}
           </div>
           <FiUsers size={40} />
         </Card>
         <Card className="p-col-12 p-md-3">
           <div>
             <p className="card-title">Produtos</p>
-            <p className="card-value">100</p>
-            <small>20% a mais que mês passado</small>
+            <p className="card-value">
+              {generalInfo.products ? (
+                generalInfo.products
+              ) : (
+                <small>Carregando...</small>
+              )}
+            </p>
+            <small>Número total de produtos</small>
+            {/* <small>20% a mais que mês passado</small> */}
           </div>
           <FiPackage size={40} />
         </Card>
       </CardContainer>
 
+      <SalesChartContainer>
+        <div className="p-grid p-justify-between">
+          <h2>Vendas realizadas nos ultimos 12 meses</h2>
+          <div className="p-grid p-dir-col p-align-end">
+            <FiRefreshCw size={30} onClick={updateSalesLast12Months} />
+            <UpdatedAt>{`Atualizado em ${salesLast12Months.updatedAt}`}</UpdatedAt>
+          </div>
+        </div>
+
+        <Chart type="bar" data={salesChartData} options={salesChartOptions} />
+      </SalesChartContainer>
+
       <ClientsChartContainer className="p-grid p-justify-around">
         <div>
           <h2>Novos clientes nos ultimos 3 meses</h2>
-          <Chart
+          <h3 className="p-grid p-align-center p-justify-center">
+            Indisponivel
+          </h3>
+          {/* <Chart
             type="line"
             data={clientChartData}
             className="p-col-12 p-lg-7"
             height="350px"
             width="750px"
-          />
+          /> */}
         </div>
         <div className="p-col-12 p-lg-5">
           <h2>Produtos mais vendidos</h2>
-          <TopSellingProducts>
+          <h3 className="p-grid p-align-center p-justify-center">
+            Indisponivel
+          </h3>
+          {/* <TopSellingProducts> 
             <thead>
               <tr>
                 <th>Produtos</th>
@@ -145,14 +222,9 @@ export default function Dashboard() {
                 <td>980</td>
               </tr>
             </tbody>
-          </TopSellingProducts>
+          </TopSellingProducts> */}
         </div>
       </ClientsChartContainer>
-
-      <SalesChartContainer>
-        <h2>Vendas realizadas nos ultimos 12 meses</h2>
-        <Chart type="bar" data={salesChartData} options={salesChartOptions} />
-      </SalesChartContainer>
     </>
   );
 }
