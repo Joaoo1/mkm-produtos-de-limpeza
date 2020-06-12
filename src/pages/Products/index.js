@@ -28,6 +28,8 @@ import ConfirmModal from '../../components/ConfirmModal';
 import ProductController from '../../controllers/ProductController';
 import StockHistoryController from '../../controllers/StockHistoryController';
 
+import Product from '../../models/Product';
+
 import { successMsg, errorMsg } from '../../helpers/Growl';
 
 export default function Products() {
@@ -55,16 +57,6 @@ export default function Products() {
     fetchProducts();
   }, []);
 
-  function cleanUpProductObject() {
-    setProduct({
-      nome: '',
-      newName: '',
-      preco: '',
-      manageStock: false,
-      currentStock: 0,
-    });
-  }
-
   function filterList(event) {
     setFilteredList(
       productList.filter(prod =>
@@ -78,7 +70,7 @@ export default function Products() {
       event.target.value.length === 0 ||
       Number.isNaN(Number(event.target.value))
     ) {
-      setProduct({ ...product, preco: event.target.value });
+      setProduct({ ...product, preco: event.target.value.toString() });
     } else {
       setProduct({ ...product, preco: new Big(event.target.value) });
     }
@@ -90,7 +82,7 @@ export default function Products() {
   }
 
   function openAddModal() {
-    cleanUpProductObject();
+    setProduct(new Product());
     setModalTitle('Cadastrar novo Produto');
     setModalOpen({ ...modalOpen, addEditModal: true });
   }
@@ -102,7 +94,7 @@ export default function Products() {
   }
 
   function toggleDeleteModal(p, index) {
-    cleanUpProductObject();
+    setProduct(new Product());
     if (p) {
       setProduct({ ...p, index });
       setModalOpen({ ...modalOpen, deleteModal: true });
@@ -128,12 +120,13 @@ export default function Products() {
 
   // Validating nome and preco fields and if product already exists
   function validateForm() {
-    if (
-      product.newName.length === 0 ||
-      Number(product.preco) === 0 ||
-      Number.isNaN(Number(product.preco))
-    ) {
-      errorMsg(growl, `Preencha os campos corretamente!`);
+    if (product.newName.length === 0) {
+      errorMsg(growl, `Digite um nome para o produto`);
+      return false;
+    }
+
+    if (Number.isNaN(Number(product.preco)) || Number(product.preco) === 0) {
+      errorMsg(growl, `Informe um preço válido e maior que zero`);
       return false;
     }
 
@@ -178,7 +171,7 @@ export default function Products() {
         () => errorMsg(growl, `Ocorreu um erro ao atualizar produto`)
       );
       closeModal();
-      cleanUpProductObject();
+      setProduct(new Product());
     } else {
       ProductController.create(product).then(
         () => {
@@ -188,7 +181,7 @@ export default function Products() {
         () => errorMsg(growl, `Ocorreu um erro ao adicionar produto`)
       );
       closeModal();
-      cleanUpProductObject();
+      setProduct(new Product());
     }
   }
 
@@ -201,7 +194,7 @@ export default function Products() {
       () => errorMsg(growl, `Ocorreu um erro ao excluir produto`)
     );
     setModalOpen({ ...modalOpen, deleteModal: false });
-    cleanUpProductObject();
+    setProduct(new Product());
   }
 
   function handleStockHistoryItem(stockHistory) {
@@ -275,7 +268,7 @@ export default function Products() {
           {filteredList.map((p, idx) => (
             <tr key={p.id}>
               <td>{p.nome}</td>
-              <td>{`R$${p.preco}`}</td>
+              <td>{`R$${p.preco.toFixed(2)}`}</td>
 
               {p.manageStock ? <td>{p.currentStock}</td> : <td>0</td>}
 
@@ -336,16 +329,7 @@ export default function Products() {
           onChange={e => setProduct({ ...product, newName: e.target.value })}
         />
         <p>Preço</p>
-        <input
-          type="number"
-          value={
-            typeof product.preco === 'string'
-              ? product.preco
-              : product.preco.toFixed(2)
-          }
-          onChange={setPrice}
-        />
-
+        <input type="number" value={product.preco} onChange={setPrice} />
         <CheckboxContainer>
           <Checkbox
             checked={product.manageStock}
@@ -358,7 +342,6 @@ export default function Products() {
           />
           Gerenciar estoque
         </CheckboxContainer>
-
         <p>Estoque</p>
         <input
           type="number"
@@ -368,10 +351,8 @@ export default function Products() {
           }}
           disabled={!product.manageStock}
         />
-
         <ModalButtonsContainer>
           <SecondaryButton onClick={() => closeModal()}>Fechar</SecondaryButton>
-
           <PrimaryButton onClick={() => handleSave(product.id)}>
             Salvar
           </PrimaryButton>

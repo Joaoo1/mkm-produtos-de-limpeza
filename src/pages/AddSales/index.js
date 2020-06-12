@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useHistory } from 'react-router-dom';
 import Big from 'big.js';
 
 import {
@@ -28,8 +29,10 @@ import { successMsg, errorMsg } from '../../helpers/Growl';
 
 export default function AddSales() {
   const growl = useRef(null);
-
   SelectClientModal.setAppElement('#root');
+
+  const history = useHistory();
+
   const [selectClientModalIsOpen, setSelectClientModalOpen] = useState(false);
   const [productsSuggestions, setProductSuggestions] = useState([]);
   const [clients, setClients] = useState([]);
@@ -190,7 +193,7 @@ export default function AddSales() {
     });
   }
 
-  async function toogleSelectClientModal() {
+  async function toggleSelectClientModal() {
     setSelectClientModalOpen(!selectClientModalIsOpen);
     if (clients.length === 0) {
       const clients = await ClientController.index();
@@ -201,7 +204,7 @@ export default function AddSales() {
 
   function selectClient(index) {
     setSale({ ...sale, client: filteredClients[index] });
-    toogleSelectClientModal();
+    toggleSelectClientModal();
   }
 
   function filterClientList(event) {
@@ -252,13 +255,13 @@ export default function AddSales() {
       <Growl ref={growl} />
       <SelectClientModal
         isOpen={selectClientModalIsOpen}
-        onRequestClose={toogleSelectClientModal}
+        onRequestClose={toggleSelectClientModal}
         closeTimeoutMS={450}
         overlayClassName="modal-overlay"
       >
         <header className="p-grid  p-justify-between">
           <h2>Selecione um cliente</h2>
-          <FiX size={28} onClick={toogleSelectClientModal} />
+          <FiX size={28} onClick={toggleSelectClientModal} />
         </header>
         <hr />
         <InputText
@@ -288,7 +291,7 @@ export default function AddSales() {
       <div className="p-grid">
         <Header className="p-col-12">
           <p>
-            <FiArrowLeft size={40} />
+            <FiArrowLeft size={40} onClick={() => history.push('/sales')} />
             Registrar nova venda
           </p>
           <PrimaryButton onClick={addSale}>Registrar</PrimaryButton>
@@ -316,7 +319,8 @@ export default function AddSales() {
                 value={product.quantidade}
                 keyfilter="int"
                 onChange={e =>
-                  setProduct({ ...product, quantidade: e.target.value })}
+                  setProduct({ ...product, quantidade: e.target.value })
+                }
               />
               <button
                 type="button"
@@ -363,7 +367,7 @@ export default function AddSales() {
                 placeholder="Selecione um cliente"
                 disabled
               />
-              <button type="button" onClick={() => toogleSelectClientModal()}>
+              <button type="button" onClick={() => toggleSelectClientModal()}>
                 <FiUserPlus size="32" color="#fff" />
               </button>
             </div>

@@ -8,10 +8,6 @@ const PurchasesMadeList = styled(List)`
   .sale-id {
     width: 55px;
   }
-
-  p {
-    padding-top: 7px;
-  }
 `;
 
 export { PurchasesMadeList };

@@ -424,7 +424,7 @@ export default function Clients() {
                   <tr key={sale.id}>
                     <td className="sale-id">{sale.idVenda}</td>
                     <td>{sale.dataVenda}</td>
-                    <td>{`R$${sale.valorLiquido}`}</td>
+                    <td>{`R$${sale.valorLiquido.toFixed(2)}`}</td>
                     <td>{sale.situation}</td>
                     <td>
                       <div className="p-grid p-dir-col">

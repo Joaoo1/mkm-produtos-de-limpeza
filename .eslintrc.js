@@ -26,6 +26,7 @@ module.exports = {
   rules: {
     "prettier/prettier": "error",
     "class-methods-use-this": "off",
+    "react/jsx-curly-newline": "off",
     "no-param-reassign": "off",
     "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx"] }],
     "react/jsx-one-expression-per-line": "off",

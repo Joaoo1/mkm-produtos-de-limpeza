@@ -1,21 +1,29 @@
+import cloneDeep from 'lodash.clonedeep';
+
 export default class Client {
-  constructor({ bairro, cidade, endereco, complemento, nome, telefone, id }) {
-    this.id = id;
-    this.nome = nome;
-    if (bairro) this.bairro = bairro;
-    if (cidade) this.cidade = cidade;
-    if (endereco) this.endereco = endereco;
-    if (complemento) this.complemento = complemento;
-    if (telefone) this.telefone = telefone;
+  constructor(client) {
+    let c = cloneDeep(client);
+    if (!c) c = {};
+    this.id = c.id ? c.id : '';
+    this.nome = c.nome ? c.nome : '';
+    this.bairro = c.bairro ? c.bairro : '';
+    this.cidade = c.cidade ? c.cidade : '';
+    this.endereco = c.endereco ? c.endereco : '';
+    this.complemento = c.complemento ? c.complemento : '';
+    this.telefone = c.telefone ? c.telefone : '';
   }
 
   cleanUp() {
     this.id = '';
     this.nome = '';
-    if (this.bairro) this.bairro = '';
-    if (this.cidade) this.cidade = '';
-    if (this.endereco) this.endereco = '';
-    if (this.complemento) this.complemento = '';
-    if (this.telefone) this.telefone = '';
+    this.bairro = '';
+    this.cidade = '';
+    this.endereco = '';
+    this.complemento = '';
+    this.telefone = '';
+  }
+
+  formatToFirestore() {
+    delete this.id;
   }
 }

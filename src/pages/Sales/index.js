@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FiMoreVertical } from 'react-icons/fi';
 import { useHistory } from 'react-router-dom';
 
+import { Growl } from 'primereact/growl';
 import SaleController from '../../controllers/SaleController';
 
 import { SaleModal } from '../../styles/modal';
@@ -16,7 +17,10 @@ import ListHeader from '../../components/ListHeader';
 import ConfirmModal from '../../components/ConfirmModal';
 
 export default function Sales() {
+  const growl = useRef(null);
+
   SaleModal.setAppElement('#root');
+
   const history = useHistory();
 
   const [salesList, setSalesList] = useState([]);
@@ -25,8 +29,8 @@ export default function Sales() {
 
   useEffect(() => {
     async function fetchSales() {
-      const sales = SaleController.index();
-      setTimeout(() => setSalesList(sales), 2000);
+      const sales = await SaleController.index(100);
+      setSalesList(sales);
     }
     fetchSales();
   }, []);
@@ -51,6 +55,7 @@ export default function Sales() {
 
   return (
     <div>
+      <Growl ref={growl} />
       <ListHeader
         btnFunction={() => {
           history.push({
@@ -60,6 +65,7 @@ export default function Sales() {
         }}
         btnText="Registrar venda"
         placeHolder="Digite aqui o ID da venda"
+        filterList={() => {}}
         filterEnabled
       />
 
@@ -84,7 +90,7 @@ export default function Sales() {
                 <td>{el.idVenda}</td>
                 <td>
                   R$
-                  {el.valorLiquido.toString()}
+                  {el.valorLiquido.toFixed(2)}
                 </td>
                 <td>{el.dataVenda}</td>
                 <td>{el.nomeCliente}</td>
@@ -92,7 +98,7 @@ export default function Sales() {
                 <td className="products">
                   {el.products &&
                     el.products.map(product => (
-                      <p key={product.nome}>
+                      <p key={product.id}>
                         {`${product.quantidade}x ${product.nome}`}
                       </p>
                     ))}
@@ -101,7 +107,7 @@ export default function Sales() {
                   <DropdownList>
                     <FiMoreVertical size={24} />
                     <DropdownContent>
-                      <DropdownItem>Mudar situação para pago</DropdownItem>
+                      <DropdownItem>Alterar situação de pagamento</DropdownItem>
                       <DropdownItem
                         onClick={() => {
                           handleHistory({

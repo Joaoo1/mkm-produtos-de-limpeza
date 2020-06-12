@@ -31,8 +31,9 @@ const ClientSalesController = {
             sale.id = doc.id;
             const productsPromise = getProductsBySaleId(sale.id);
             return productsPromise.then(products => {
-              sale.products = products;
-              sales.push(new Sale(sale));
+              const saleWithProducts = new Sale(sale);
+              saleWithProducts.products = products;
+              sales.push(saleWithProducts);
               return sales;
             });
           })

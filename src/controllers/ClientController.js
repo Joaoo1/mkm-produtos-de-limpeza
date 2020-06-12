@@ -4,27 +4,27 @@ import Client from '../models/Client';
 
 const ClientController = {
   async index() {
-    const data = await Firestore.collection(COL_CLIENTS).get();
+    const data = await Firestore.collection(COL_CLIENTS)
+      .orderBy('nome', 'asc')
+      .get();
     const clients = data.docs.map(doc => {
-      const c = doc.data();
-      c.id = doc.id;
-      return new Client(c);
+      return new Client({ ...doc.data(), id: doc.id });
     });
     return clients;
   },
 
   create(client) {
-    delete client.id;
-    return Firestore.collection(COL_CLIENTS).add(client);
+    const c = new Client(client);
+    c.formatToFirestore();
+    return Firestore.collection(COL_CLIENTS).add({ ...c });
   },
 
   update(client) {
-    const query = Firestore.collection(COL_CLIENTS).doc(client.id);
-
-    const c = Object.assign(client);
-    delete c.id;
-
-    return query.update(c);
+    const c = new Client(client);
+    c.formatToFirestore();
+    return Firestore.collection(COL_CLIENTS)
+      .doc(client.id)
+      .update({ ...c });
   },
 
   delete(id) {

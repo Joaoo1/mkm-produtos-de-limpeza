@@ -7,6 +7,7 @@ export const COL_NEIGHBORHOODS = 'bairros';
 export const COL_STREETS = 'ruas';
 export const COL_USERS = 'users';
 export const COL_DASHBOARD = 'dashboard';
+export const COL_SALE_IDS = 'id_vendas';
 
 export const DOC_SALES_12_MONTHS = 'salesFromLast12Months';
 export const DOC_GENERAL_INFO = 'generalInfo';
