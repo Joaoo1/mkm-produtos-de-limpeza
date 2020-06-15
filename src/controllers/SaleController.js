@@ -95,7 +95,7 @@ const SaleController = {
       });
   },
 
-  update(sale, isFinishSale) {
+  async update(sale, isFinishSale) {
     if (isFinishSale) {
       const finish = Functions.httpsCallable('finishSale');
       return finish({
@@ -108,10 +108,34 @@ const SaleController = {
         valorAReceber: sale.valorAReceber.toFixed(2),
       });
     }
+    const newSale = {};
+    newSale.idVenda = sale.idVenda;
+    newSale.pago = sale.paymentMethod === 'paid';
+    newSale.valorBruto = sale.totalProducts.toFixed(2);
+    newSale.valorPago = sale.totalPaid.toFixed(2);
+    newSale.desconto = sale.discount.toFixed(2);
+    newSale.valorLiquido = sale.totalProducts.sub(sale.discount).toFixed(2);
+    newSale.valorAReceber = sale.total.sub(sale.totalPaid).toFixed(2);
+    newSale.idCliente = sale.client.idCliente;
+    newSale.nomeCliente = sale.client.nomeCliente;
+    if (sale.seller) newSale.seller = sale.seller;
+    if (sale.sellerUid) newSale.sellerUid = sale.sellerUid;
+    if (!newSale.pago) {
+      if (newSale.enderecoCliente)
+        newSale.enderecoCliente = sale.enderecoCliente;
+      if (newSale.complementoCliente)
+        newSale.complementoCliente = sale.complementoCliente;
+      if (newSale.bairroCliente) newSale.bairroCliente = sale.bairroCliente;
+      if (newSale.cidadeCliente) newSale.cidadeCliente = sale.cidadeCliente;
+      if (newSale.telefone) newSale.telefone = sale.telefone;
+    }
 
     return Firestore.collection('vendas')
       .doc(sale.id)
-      .update({ ...sale, dataVenda: convertStringToTimeStamp(sale.dataVenda) });
+      .update({
+        ...newSale,
+        dataVenda: convertStringToTimeStamp(sale.dataVenda),
+      });
   },
 
   delete(saleId, idVenda) {

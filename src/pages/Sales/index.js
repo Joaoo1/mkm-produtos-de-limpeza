@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Big from 'big.js';
-import { FiMoreVertical } from 'react-icons/fi';
+import { FiMoreVertical, FiPrinter } from 'react-icons/fi';
 import { useHistory } from 'react-router-dom';
 
 import { Growl } from 'primereact/growl';
@@ -14,10 +14,13 @@ import {
   DropdownItem,
 } from '../../styles/table';
 
+import FloatingButton from './styles';
+
 import ListHeader from '../../components/ListHeader';
 import ConfirmModal from '../../components/ConfirmModal';
 
 import { successMsg } from '../../helpers/Growl';
+import savePDF from '../../helpers/SavePDF';
 
 export default function Sales() {
   const growl = useRef(null);
@@ -27,18 +30,27 @@ export default function Sales() {
   const history = useHistory();
 
   const [salesList, setSalesList] = useState([]);
+  const [filteredList, setFilteredList] = useState([]);
   const [sale, setSale] = useState({});
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   async function fetchSales() {
     const sales = await SaleController.index(100);
     setSalesList(sales);
+    setFilteredList(sales);
   }
 
   useEffect(() => {
     fetchSales();
   }, []);
 
+  function filterList(event) {
+    setFilteredList(
+      salesList.filter(sale =>
+        sale.idVenda.toString().includes(event.target.value)
+      )
+    );
+  }
   function toggleDeleteModal(s) {
     setSale({});
     if (s) {
@@ -75,8 +87,15 @@ export default function Sales() {
     });
   }
 
+  function printSales() {
+    savePDF(salesList);
+  }
+
   return (
     <div>
+      <FloatingButton>
+        <FiPrinter size={30} color="white" onClick={printSales} />
+      </FloatingButton>
       <Growl ref={growl} />
       <ListHeader
         btnFunction={() => {
@@ -86,11 +105,11 @@ export default function Sales() {
         }}
         btnText="Registrar venda"
         placeHolder="Digite aqui o ID da venda"
-        filterList={() => {}}
+        filterList={filterList}
         filterEnabled
       />
 
-      <SalesList>
+      <SalesList id="sales-list">
         <thead>
           <tr>
             <th>ID da Venda</th>
@@ -104,9 +123,9 @@ export default function Sales() {
         </thead>
 
         <tbody>
-          {salesList &&
-            Array.isArray(salesList) &&
-            salesList.map(el => (
+          {filteredList &&
+            Array.isArray(filteredList) &&
+            filteredList.map(el => (
               <tr key={el.idVenda}>
                 <td>{el.idVenda}</td>
                 <td>

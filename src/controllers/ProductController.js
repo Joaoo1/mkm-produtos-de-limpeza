@@ -1,6 +1,7 @@
 import { Firestore } from '../server/firebase';
 import { COL_PRODUCTS } from '../constants/firestore';
 import Product from '../models/Product';
+import StockHistoryController from './StockHistoryController';
 
 const ProductController = {
   async index() {
@@ -24,9 +25,11 @@ const ProductController = {
   update(product) {
     const p = new Product(product);
     p.formatToFirestore();
-    return Firestore.collection(COL_PRODUCTS)
-      .doc(product.id)
-      .update({ ...p });
+    return StockHistoryController.update({ ...p, id: product.id }).then(() => {
+      return Firestore.collection(COL_PRODUCTS)
+        .doc(product.id)
+        .update({ ...p });
+    });
   },
 
   delete(id) {

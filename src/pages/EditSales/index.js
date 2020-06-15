@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import Big from 'big.js';
 
-import { FiArrowLeft, FiXCircle, FiPlus, FiMinus } from 'react-icons/fi';
+import { FiArrowLeft, FiPlus, FiMinus } from 'react-icons/fi';
 import { AutoComplete } from 'primereact/autocomplete';
 import { RadioButton } from 'primereact/radiobutton';
 import { Checkbox } from 'primereact/checkbox';
@@ -14,9 +14,6 @@ import { PrimaryButton } from '../../styles/button';
 
 import ProductController from '../../controllers/ProductController';
 import SaleController from '../../controllers/SaleController';
-import SaleProductController from '../../controllers/SaleProductController';
-
-import Client from '../../models/Client';
 
 import { successMsg, errorMsg } from '../../helpers/Growl';
 
@@ -49,6 +46,8 @@ export default function EditSales() {
     discount: new Big('0.00'),
   });
 
+  const [totalToReceive, setTotalToReceive] = useState(new Big(0));
+
   function getPaymentMethod(situation) {
     switch (situation) {
       case 'PAGO':
@@ -72,12 +71,12 @@ export default function EditSales() {
   }, []);
 
   useEffect(() => {
-    const newTotal = values.totalProducts
-      .minus(values.discount)
-      .minus(values.totalPaid);
+    const newTotal = values.totalProducts.minus(values.discount);
+
     setSale({ ...sale, total: newTotal });
+    setTotalToReceive(newTotal.sub(values.totalPaid));
     // eslint-disable-next-line
-  }, [values]); 
+  }, [values]);
 
   useEffect(() => {
     const stateSale = location.state;
@@ -107,6 +106,9 @@ export default function EditSales() {
       if (key === 'telefone') stateSale.client.telefone = stateSale[key];
     });
     setSale({
+      id: stateSale.id,
+      idVenda: stateSale.idVenda,
+      dataVenda: stateSale.dataVenda,
       paymentMethod: stateSale.paymentMethod,
       products: stateSale.products.map(p => {
         return { ...p, preco: new Big(p.preco) };
@@ -129,6 +131,14 @@ export default function EditSales() {
 
   function incrementTotal(preco, quantidade) {
     const newTotal = preco.mul(quantidade).plus(values.totalProducts);
+    if (sale.paymentMethod === 'paid') {
+      setValues({
+        ...values,
+        totalPaid: newTotal.sub(values.discount),
+        totalProducts: newTotal,
+      });
+      return;
+    }
     setValues({ ...values, totalProducts: newTotal });
   }
 
@@ -161,11 +171,6 @@ export default function EditSales() {
       return false;
     }
 
-    if (!sale.client.id || sale.client.nome.length === 0) {
-      errorMsg(growl, 'Selecione um cliente');
-      return false;
-    }
-
     if (
       sale.paymentMethod === 'partially' &&
       values.totalPaid.eq(new Big('0.00'))
@@ -174,22 +179,26 @@ export default function EditSales() {
       return false;
     }
 
+    if (sale.total.lt(new Big(0))) {
+      errorMsg(growl, 'Desconto maior que o valor dos produtos');
+      return false;
+    }
+
+    if (totalToReceive.lt(new Big(0))) {
+      errorMsg(growl, 'Valor pago é maior que o valor da venda');
+      return false;
+    }
+
     return true;
   }
 
   function editSale() {
-    /* if (validateSale()) {
-      SaleController.create({ ...sale, ...values }).then(
-        saleData =>
-          // Sale is created, now is time to add the products in it
-          SaleProductController.create(saleData.id, sale.products).then(
-            () => successMsg(growl, 'Venda adicionada com sucesso'),
-            () => errorMsg(growl, 'Ocorre um erro ao adicionar os produtos')
-          ),
-        () => errorMsg(growl, 'Ocorreu um erro ao adicionar venda')
+    if (validateSale()) {
+      SaleController.update({ ...sale, ...values }).then(
+        () => successMsg(growl, 'Venda Atualizada com sucesso'),
+        error => errorMsg(growl, error.toString())
       );
-    } */
-    console.log(sale);
+    }
   }
 
   function handleRemoveQtt() {
@@ -200,19 +209,6 @@ export default function EditSales() {
 
   function handleAddQtt() {
     setProduct({ ...product, quantidade: product.quantidade + 1 });
-  }
-
-  function handleDeleteProduct(index) {
-    const deletedProduct = sale.products[index];
-    const subtract = deletedProduct.preco.mul(deletedProduct.quantidade);
-    const newTotal = sale.total.sub(subtract);
-    const newTotalProducts = values.totalProducts.sub(subtract);
-    setValues({ ...values, totalProducts: newTotalProducts });
-    setSale({
-      ...sale,
-      products: sale.products.filter((product, idx) => idx !== index),
-      total: newTotal,
-    });
   }
 
   function toggleDiscount(event) {
@@ -235,8 +231,19 @@ export default function EditSales() {
   }
 
   function handleRadioCheck(event) {
+    if (event.target.value === 'paid') {
+      setValues({
+        ...values,
+        totalPaid: values.totalProducts.sub(values.discount),
+      });
+    } else {
+      setValues({
+        ...values,
+        totalPaid: new Big(0),
+      });
+    }
+
     setSale({ ...sale, paymentMethod: event.target.value });
-    setValues({ ...values, totalPaid: new Big(0) });
   }
 
   function changeTotalPaid(event) {
@@ -299,7 +306,7 @@ export default function EditSales() {
           <table>
             <thead>
               <tr>
-                <th colSpan="4">Produtos Adicionados</th>
+                <th colSpan="3">Produtos Adicionados</th>
               </tr>
             </thead>
             <tbody>
@@ -309,14 +316,14 @@ export default function EditSales() {
                     <td>{`${product.quantidade}x`}</td>
                     <td>{product.nome}</td>
                     <td>{`R$${product.preco.toFixed(2)}`}</td>
-                    <td>
+                    {/* <td>
                       <FiXCircle
                         size={22}
                         color="red"
                         onClick={() => handleDeleteProduct(idx)}
                         title="Excluir produto"
                       />
-                    </td>
+                    </td> */}
                   </tr>
                 );
               })}
@@ -404,12 +411,6 @@ export default function EditSales() {
               </tr>
               <tr>
                 <td>
-                  <p>Valor Pago:</p>
-                </td>
-                <td>{`R$${values.totalPaid.toFixed(2)}`}</td>
-              </tr>
-              <tr>
-                <td>
                   <p>Desconto:</p>
                 </td>
                 <td>{`R$${values.discount.toFixed(2)}`}</td>
@@ -424,6 +425,23 @@ export default function EditSales() {
                   <p>Total:</p>
                 </td>
                 <td>{`R$${sale.total.toFixed(2)}`}</td>
+              </tr>
+              <tr>
+                <td>
+                  <p>Valor Pago:</p>
+                </td>
+                <td>{`R$${values.totalPaid.toFixed(2)}`}</td>
+              </tr>
+              <tr>
+                <td colSpan="2">
+                  <hr />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p>Valor a Receber:</p>
+                </td>
+                <td>{`R$${totalToReceive.toFixed(2)}`}</td>
               </tr>
             </tbody>
           </table>

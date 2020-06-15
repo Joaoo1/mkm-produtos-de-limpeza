@@ -205,7 +205,7 @@ export default function Products() {
             <FiChevronUp size={28} color="green" />
           </td>
           <td>Estoque adicionado</td>
-          <td>{stockHistory.date.toDate().toLocaleString()}</td>
+          <td>{stockHistory.date}</td>
           <td>{stockHistory.seller}</td>
           <td>+{stockHistory.quantity}</td>
         </tr>
@@ -218,7 +218,7 @@ export default function Products() {
             <FiChevronDown size={28} color="red" />
           </td>
           <td>Estoque removido</td>
-          <td>{stockHistory.date.toDate().toLocaleString()}</td>
+          <td>{stockHistory.date}</td>
           <td>{stockHistory.seller}</td>
           <td>+{stockHistory.quantity}</td>
         </tr>
@@ -230,9 +230,9 @@ export default function Products() {
           <td>
             <FiChevronDown size={28} color="red" />
           </td>
-          <td>{`Venda ${stockHistory.saleId}`}</td>
-          <td>{stockHistory.date.toDate().toLocaleString()}</td>
           <td>{`Cliente ${stockHistory.client}`}</td>
+          {/* <td>{`Venda ${stockHistory.saleId}`}</td> */}
+          <td colSpan="2">{stockHistory.date}</td>
           <td>{`-${stockHistory.quantity}`}</td>
         </tr>
       );

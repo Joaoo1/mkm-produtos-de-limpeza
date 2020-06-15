@@ -43,8 +43,8 @@ export default class Sale {
     if (sellerUid) this.sellerUid = sellerUid;
     if (bairroCliente) this.bairroCliente = bairroCliente;
     if (cidadeCliente) this.cidadeCliente = cidadeCliente;
-    if (enderecoCliente) this.cidadeCliente = cidadeCliente;
-    if (complementoCliente) this.cidadeCliente = cidadeCliente;
+    if (enderecoCliente) this.enderecoCliente = enderecoCliente;
+    if (complementoCliente) this.complementoCliente = complementoCliente;
     if (telefone) this.telefone = telefone;
   }
 

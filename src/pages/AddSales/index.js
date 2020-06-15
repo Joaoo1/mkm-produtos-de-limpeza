@@ -26,6 +26,7 @@ import SaleController from '../../controllers/SaleController';
 import SaleProductController from '../../controllers/SaleProductController';
 
 import { successMsg, errorMsg } from '../../helpers/Growl';
+import StockHistoryController from '../../controllers/StockHistoryController';
 
 export default function AddSales() {
   const growl = useRef(null);
@@ -52,6 +53,8 @@ export default function AddSales() {
     discount: new Big('0.00'),
   });
 
+  const [totalToReceive, setTotalToReceive] = useState(new Big(0));
+
   // Prevent AutoComplete from clearing its values automatically
   const [product, setProduct] = useState({ nome: '', quantidade: 1 });
 
@@ -67,11 +70,10 @@ export default function AddSales() {
   }, []);
 
   useEffect(() => {
-    const newTotal = values.totalProducts
-      .minus(values.discount)
-      .minus(values.totalPaid);
+    const newTotal = values.totalProducts.minus(values.discount);
 
     setSale({ ...sale, total: newTotal });
+    setTotalToReceive(newTotal.sub(values.totalPaid));
     // eslint-disable-next-line
   }, [values]);
 
@@ -87,6 +89,15 @@ export default function AddSales() {
 
   function incrementTotal(preco, quantidade) {
     const newTotal = preco.mul(quantidade).plus(values.totalProducts);
+    if (sale.paymentMethod === 'paid') {
+      setValues({
+        ...values,
+        totalPaid: newTotal.sub(values.discount),
+        totalProducts: newTotal,
+      });
+      return;
+    }
+
     setValues({ ...values, totalProducts: newTotal });
   }
 
@@ -111,17 +122,39 @@ export default function AddSales() {
   function addProductToList(event) {
     // checks if enter was pressed
     if (event.keyCode === 13) {
+      if (product.nome.length === 0) return;
+      // Checking if product exists
       for (let i = 0; i < allProducts.length; i++) {
-        if (allProducts[i].nome.includes(event.target.value)) {
-          // checking if the user entered an invalid number
-          if (product.quantidade.length === 0 || product.quantidade < 1) {
+        if (allProducts[i].nome === product.nome) {
+          // Checking if the user entered an invalid number
+          if (product.quantidade.length <= 0) {
             product.quantidade = 1;
           }
+
           incrementTotal(allProducts[i].preco, product.quantidade);
-          sale.products.push({
-            ...allProducts[i],
-            quantidade: product.quantidade,
-          });
+          // Checking if product is already added
+          const addedProduct = sale.products.filter(
+            p => p.nome === product.nome
+          );
+
+          if (addedProduct.length > 0) {
+            const prodList = sale.products.map(prod => {
+              if (prod.nome === product.nome) {
+                prod.quantidade += product.quantidade;
+              }
+              return prod;
+            });
+
+            setSale({ ...sale, products: prodList });
+          }
+          // Product is not added yet, so add it
+          else {
+            sale.products.push({
+              ...allProducts[i],
+              quantidade: product.quantidade,
+            });
+          }
+
           setProduct({ nome: '', quantidade: 1 });
           return;
         }
@@ -150,21 +183,40 @@ export default function AddSales() {
       return false;
     }
 
+    if (sale.total.lt(new Big(0))) {
+      errorMsg(growl, 'Desconto maior que o valor dos produtos');
+      return false;
+    }
+
+    if (totalToReceive.lt(new Big(0))) {
+      errorMsg(growl, 'Valor pago é maior que o valor da venda');
+      return false;
+    }
+
     return true;
   }
 
   function addSale() {
     if (validateSale()) {
       SaleController.create({ ...sale, ...values }).then(
-        saleData =>
-          // Sale is created, now is time to add the products in it
+        saleData => {
           SaleProductController.create(saleData.id, sale.products).then(
             () => {
               successMsg(growl, 'Venda adicionada com sucesso');
               resetSale();
             },
             () => errorMsg(growl, 'Ocorre um erro ao adicionar os produtos')
-          ),
+          );
+          sale.products.forEach(p => {
+            if (p.manageStock) {
+              StockHistoryController.create(p, {
+                client: sale.client.nome,
+              });
+            }
+          });
+        },
+        // Sale is created, now is time to add the products in it
+
         () => errorMsg(growl, 'Ocorreu um erro ao adicionar venda')
       );
     }
@@ -235,8 +287,19 @@ export default function AddSales() {
   }
 
   function handleRadioCheck(event) {
+    if (event.target.value === 'paid') {
+      setValues({
+        ...values,
+        totalPaid: values.totalProducts.sub(values.discount),
+      });
+    } else {
+      setValues({
+        ...values,
+        totalPaid: new Big(0),
+      });
+    }
+
     setSale({ ...sale, paymentMethod: event.target.value });
-    setValues({ ...values, totalPaid: new Big(0) });
   }
 
   function changeTotalPaid(event) {
@@ -441,12 +504,6 @@ export default function AddSales() {
               </tr>
               <tr>
                 <td>
-                  <p>Valor Pago:</p>
-                </td>
-                <td>{`R$${values.totalPaid.toFixed(2)}`}</td>
-              </tr>
-              <tr>
-                <td>
                   <p>Desconto:</p>
                 </td>
                 <td>{`R$${values.discount.toFixed(2)}`}</td>
@@ -461,6 +518,23 @@ export default function AddSales() {
                   <p>Total:</p>
                 </td>
                 <td>{`R$${sale.total.toFixed(2)}`}</td>
+              </tr>
+              <tr>
+                <td>
+                  <p>Valor Pago:</p>
+                </td>
+                <td>{`R$${values.totalPaid.toFixed(2)}`}</td>
+              </tr>
+              <tr>
+                <td colSpan="2">
+                  <hr />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p>Valor a Receber:</p>
+                </td>
+                <td>{`R$${totalToReceive.toFixed(2)}`}</td>
               </tr>
             </tbody>
           </table>

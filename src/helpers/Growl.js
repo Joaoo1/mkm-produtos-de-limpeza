@@ -11,6 +11,7 @@ export function errorMsg(growl, summary, title) {
     title,
     summary,
     severity: 'error',
+    life: 5000,
   });
 }
 
