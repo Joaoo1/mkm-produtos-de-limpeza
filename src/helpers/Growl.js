@@ -1,23 +1,22 @@
-export function successMsg(growl, summary, title) {
+export function successMsg(growl, summary, life) {
   growl.current.show({
-    title,
+    life: life || 3000,
     summary,
     severity: 'success',
   });
 }
 
-export function errorMsg(growl, summary, title) {
+export function errorMsg(growl, summary, life) {
   growl.current.show({
-    title,
     summary,
     severity: 'error',
-    life: 5000,
+    life: life || 5000,
   });
 }
 
-export function infoMsg(growl, summary, title) {
+export function infoMsg(growl, summary, life) {
   growl.current.show({
-    title,
+    life: life || 5000,
     summary,
     severity: 'info',
   });

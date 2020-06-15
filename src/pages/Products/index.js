@@ -125,7 +125,7 @@ export default function Products() {
       return false;
     }
 
-    if (Number.isNaN(Number(product.preco)) || Number(product.preco) === 0) {
+    if (Number.isNaN(Number(product.preco)) || Number(product.preco) <= 0) {
       errorMsg(growl, `Informe um preço válido e maior que zero`);
       return false;
     }

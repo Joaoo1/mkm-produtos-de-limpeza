@@ -19,7 +19,7 @@ import FloatingButton from './styles';
 import ListHeader from '../../components/ListHeader';
 import ConfirmModal from '../../components/ConfirmModal';
 
-import { successMsg } from '../../helpers/Growl';
+import { successMsg, infoMsg } from '../../helpers/Growl';
 import savePDF from '../../helpers/SavePDF';
 
 export default function Sales() {
@@ -84,17 +84,31 @@ export default function Sales() {
     SaleController.delete(sale, idVenda).then(() => {
       successMsg(growl, 'Venda excluida com sucesso');
       fetchSales();
+      toggleDeleteModal();
     });
   }
 
-  function printSales() {
+  function changeSaleSituation(sale) {
+    if (sale.pago) {
+      infoMsg(growl, 'Esta venda já foi finalizada');
+      return;
+    }
+    infoMsg(growl, 'Processando, aguarde um momento!');
+
+    SaleController.update(sale, true).then(() => {
+      fetchSales();
+      successMsg(growl, 'Venda finalizada com sucesso');
+    });
+  }
+
+  function generateReport() {
     savePDF(salesList);
   }
 
   return (
     <div>
       <FloatingButton>
-        <FiPrinter size={30} color="white" onClick={printSales} />
+        <FiPrinter size={30} color="white" onClick={generateReport} />
       </FloatingButton>
       <Growl ref={growl} />
       <ListHeader
@@ -147,7 +161,9 @@ export default function Sales() {
                   <DropdownList>
                     <FiMoreVertical size={24} />
                     <DropdownContent>
-                      <DropdownItem>Alterar situação de pagamento</DropdownItem>
+                      <DropdownItem onClick={() => changeSaleSituation(el)}>
+                        Alterar situação de pagamento
+                      </DropdownItem>
                       <DropdownItem
                         onClick={() => handleHistory('/sales/edit', el)}
                       >

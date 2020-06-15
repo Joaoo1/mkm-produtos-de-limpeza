@@ -243,6 +243,7 @@ export default function Clients() {
       infoMsg(growl, 'Esta venda já foi finalizada');
       return;
     }
+    infoMsg(growl, 'Processando, aguarde um momento!');
 
     SaleController.update(sale, true).then(
       async () => {
