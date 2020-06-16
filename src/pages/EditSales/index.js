@@ -264,7 +264,7 @@ export default function EditSales() {
         <Header className="p-col-12">
           <p>
             <FiArrowLeft size={40} onClick={() => history.push('/sales')} />
-            Registrar nova venda
+            Editar venda
           </p>
           <PrimaryButton onClick={editSale}>Salvar</PrimaryButton>
         </Header>
@@ -310,20 +310,12 @@ export default function EditSales() {
               </tr>
             </thead>
             <tbody>
-              {sale.products.map((product, idx) => {
+              {sale.products.map(product => {
                 return (
                   <tr key={product.id}>
                     <td>{`${product.quantidade}x`}</td>
                     <td>{product.nome}</td>
                     <td>{`R$${product.preco.toFixed(2)}`}</td>
-                    {/* <td>
-                      <FiXCircle
-                        size={22}
-                        color="red"
-                        onClick={() => handleDeleteProduct(idx)}
-                        title="Excluir produto"
-                      />
-                    </td> */}
                   </tr>
                 );
               })}

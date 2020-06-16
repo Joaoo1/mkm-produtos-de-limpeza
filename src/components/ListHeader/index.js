@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import { Calendar } from 'primereact/calendar';
 import { Checkbox } from 'primereact/checkbox';
 import { InputText } from 'primereact/inputtext';
+import { Dropdown } from 'primereact/dropdown';
+import { AutoComplete } from 'primereact/autocomplete';
 import { FiPlus, FiFilter } from 'react-icons/fi';
 
 import {
@@ -32,6 +34,11 @@ export default function ListHeader({
   filterEnabled,
   placeHolder,
 }) {
+  const addressesOptions = [
+    { label: 'Rua', value: 'street' },
+    { label: 'Bairro', value: 'neighborhood' },
+    { label: 'Cidade', value: 'city' },
+  ];
   const [showFilter, setShowFilter] = useState(false);
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [situations, setSituations] = useState({
@@ -39,7 +46,7 @@ export default function ListHeader({
     unpaid: false,
     partially: false,
   });
-
+  const [addressType, setAddressType] = useState('');
   return (
     <>
       <ListHeaderContainer>
@@ -66,14 +73,16 @@ export default function ListHeader({
               <Calendar
                 value={dateRange.startDate}
                 onChange={e =>
-                  setDateRange({ startDate: e.target.value, ...dateRange })}
+                  setDateRange({ startDate: e.target.value, ...dateRange })
+                }
                 placeholder="Data inicial"
               />
 
               <Calendar
                 value={dateRange.startDate}
                 onChange={e =>
-                  setDateRange({ startDate: e.target.value, ...dateRange })}
+                  setDateRange({ startDate: e.target.value, ...dateRange })
+                }
                 placeholder="Data Final"
               />
             </div>
@@ -82,30 +91,49 @@ export default function ListHeader({
 
           <div className="situation">
             <p>Situação do pagamento</p>
-            <Checkbox
-              value={situations.paid}
-              onChange={() =>
-                setSituations({ paid: !situations.paid, ...situations })}
-            />
-            Pago
-            <Checkbox
-              value={situations.unpaid}
-              onChange={() =>
-                setSituations({ unpaid: !situations.unpaid, ...situations })}
-            />
-            Não Pago
-            <Checkbox
-              value={situations.partially}
-              onChange={() =>
-                setSituations({
-                  partially: !situations.partially,
-                  ...situations,
-                })}
-            />
-            Parcialmente Pago
+            <label>
+              <Checkbox
+                value={situations.paid}
+                onChange={() =>
+                  setSituations({ paid: !situations.paid, ...situations })
+                }
+              />
+              Pago
+            </label>
+            <label>
+              <Checkbox
+                value={situations.unpaid}
+                onChange={() =>
+                  setSituations({ unpaid: !situations.unpaid, ...situations })
+                }
+              />
+              Não Pago
+            </label>
+            <label>
+              <Checkbox
+                value={situations.partially}
+                onChange={() =>
+                  setSituations({
+                    partially: !situations.partially,
+                    ...situations,
+                  })
+                }
+              />
+              Parcialmente Pago
+            </label>
           </div>
-          <small>Não marcar nenhuma opção pegará todas as situações</small>
-
+          <div className="address">
+            <p>Endereço</p>
+            <div>
+              <Dropdown
+                value={addressType}
+                options={addressesOptions}
+                onChange={e => setAddressType(e.value)}
+                placeholder="Selecione o tipo"
+              />
+              <AutoComplete placeholder="Digite o endereço" />
+            </div>
+          </div>
           <div className="buttons">
             <button type="button">Limpar filtro</button>
             <button type="button">Aplicar filtro</button>

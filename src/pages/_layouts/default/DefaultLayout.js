@@ -5,11 +5,16 @@ import Header from './DefaultHeader';
 
 import { Container, Main } from './styles';
 
-export default function DefaultLayout({ children }) {
+const propTypes = {
+  children: PropTypes.element.isRequired,
+  title: PropTypes.string.isRequired,
+};
+
+export default function DefaultLayout({ title, children }) {
   return (
     <>
       <Container>
-        <Header />
+        <Header title={title} />
         <Menu />
         <Main>{children}</Main>
       </Container>
@@ -17,6 +22,4 @@ export default function DefaultLayout({ children }) {
   );
 }
 
-DefaultLayout.propTypes = {
-  children: PropTypes.element.isRequired,
-};
+DefaultLayout.propTypes = propTypes;

@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Big from 'big.js';
 import { FiMoreVertical, FiPrinter } from 'react-icons/fi';
 import { useHistory } from 'react-router-dom';
 
@@ -64,19 +63,19 @@ export default function Sales() {
   function handleHistory(pathname, state) {
     state.valorBruto = state.valorBruto
       ? (state.valorBruto = state.valorBruto.toFixed(2))
-      : new Big(0);
+      : '0.00';
     state.valorLiquido = state.valorLiquido
       ? (state.valorLiquido = state.valorLiquido.toFixed(2))
-      : new Big(0);
+      : '0.00';
     state.valorPago = state.valorPago
       ? (state.valorPago = state.valorPago.toFixed(2))
-      : new Big(0);
+      : '0.00';
     state.valorAReceber = state.valorAReceber
       ? (state.valorAReceber = state.valorAReceber.toFixed(2))
-      : new Big(0);
+      : '0.00';
     state.desconto = state.desconto
       ? (state.desconto = state.desconto.toFixed(2))
-      : new Big(0);
+      : '0.00';
     history.push({ pathname, state });
   }
 

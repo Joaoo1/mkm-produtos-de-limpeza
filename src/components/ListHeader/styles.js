@@ -51,12 +51,29 @@ const FilterContainer = styled.div`
     }
   }
 
+  .address {
+    margin-top: 25px;
+
+    .p-dropdown {
+      width: 180px;
+      text-align: center;
+      margin-right: 10px;
+    }
+  }
+
   .situation {
     margin-top: 25px;
-    font-weight: 400;
 
+    p {
+      margin-bottom: 5px;
+    }
+
+    label {
+      font-weight: 400;
+      margin: 5px;
+    }
     .p-checkbox {
-      margin: 0px 5px 0 5px;
+      margin-right: 5px;
     }
   }
 

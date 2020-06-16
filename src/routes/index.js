@@ -16,13 +16,49 @@ export default function Routes() {
   return (
     <Switch>
       <Route path="/" exact component={Login} />
-      <RouteWrapper path="/dashboard" component={Dashboard} isPrivate />
-      <RouteWrapper path="/sales" exact component={Sales} isPrivate />
-      <RouteWrapper path="/sales/add" component={AddSales} isPrivate />
-      <RouteWrapper path="/sales/edit" component={EditSales} isPrivate />
-      <RouteWrapper path="/clients" component={Clients} isPrivate />
-      <RouteWrapper path="/products" component={Products} isPrivate />
-      <RouteWrapper path="/settings" component={Settings} isPrivate />
+      <RouteWrapper
+        path="/dashboard"
+        component={Dashboard}
+        title="Página inicial"
+        isPrivate
+      />
+      <RouteWrapper
+        path="/sales"
+        exact
+        component={Sales}
+        isPrivate
+        title="Vendas"
+      />
+      <RouteWrapper
+        path="/sales/add"
+        component={AddSales}
+        isPrivate
+        title="Vendas"
+      />
+      <RouteWrapper
+        path="/sales/edit"
+        component={EditSales}
+        isPrivate
+        title="Vendas"
+      />
+      <RouteWrapper
+        path="/clients"
+        component={Clients}
+        isPrivate
+        title="Clientes"
+      />
+      <RouteWrapper
+        path="/products"
+        component={Products}
+        isPrivate
+        title="Produtos"
+      />
+      <RouteWrapper
+        path="/settings"
+        component={Settings}
+        isPrivate
+        title="Configurações"
+      />
     </Switch>
   );
 }

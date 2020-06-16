@@ -84,10 +84,16 @@ export default function Settings() {
 
   async function handleAddStreet() {
     const { value } = document.getElementById('input-street');
-    const allStreets = await StreetController.index();
-    if (allStreets.includes(value.toLowerCase())) {
-      errorMsg(growl, `Essa rua já está cadastrada`);
+    if (value.length === 0) {
+      errorMsg(growl, 'Não deixe o campo em branco');
       return;
+    }
+    const allStreets = await StreetController.index();
+    for (let i = 0; i < allStreets.length; i++) {
+      if (allStreets[i].name.toLowerCase() === value.toLowerCase()) {
+        errorMsg(growl, `Essa rua já está cadastrada`);
+        return;
+      }
     }
 
     StreetController.create({ nome_rua: value }).then(
@@ -103,9 +109,11 @@ export default function Settings() {
     const { value } = document.getElementById('input-neighborhood');
 
     const allNeighborhoods = await NeighborhoodController.index();
-    if (allNeighborhoods.includes(value.toLowerCase())) {
-      errorMsg(growl, `Esse bairro já está cadastrado`);
-      return;
+    for (let i = 0; i < allNeighborhoods.length; i++) {
+      if (allNeighborhoods[i].name.toLowerCase() === value.toLowerCase()) {
+        errorMsg(growl, `Esse bairro já está cadastrada`);
+        return;
+      }
     }
 
     NeighborhoodController.create({ nome_bairro: value }).then(
@@ -119,10 +127,13 @@ export default function Settings() {
 
   async function handleAddCity() {
     const { value } = document.getElementById('input-city');
+
     const allCities = await CityController.index();
-    if (allCities.includes(value.toLowerCase())) {
-      errorMsg(growl, `Essa cidade já está cadastrada`);
-      return;
+    for (let i = 0; i < allCities.length; i++) {
+      if (allCities[i].name.toLowerCase() === value.toLowerCase()) {
+        errorMsg(growl, `Essa cidade já está cadastrada`);
+        return;
+      }
     }
 
     CityController.create({ nome_cidade: value }).then(

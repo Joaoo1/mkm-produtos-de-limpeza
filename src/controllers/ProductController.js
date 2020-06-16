@@ -1,5 +1,5 @@
 import { Firestore } from '../server/firebase';
-import { COL_PRODUCTS } from '../constants/firestore';
+import { COL_PRODUCTS, SUBCOL_STOCK_HISTORY } from '../constants/firestore';
 import Product from '../models/Product';
 import StockHistoryController from './StockHistoryController';
 
@@ -33,7 +33,14 @@ const ProductController = {
   },
 
   delete(id) {
-    return Firestore.collection(COL_PRODUCTS).doc(id).delete();
+    const docRef = Firestore.collection(COL_PRODUCTS).doc(id);
+    docRef
+      .collection(SUBCOL_STOCK_HISTORY)
+      .get()
+      .then(snapshot =>
+        snapshot.docs.map(stockHistory => stockHistory.ref.delete())
+      );
+    return docRef.delete();
   },
 };
 

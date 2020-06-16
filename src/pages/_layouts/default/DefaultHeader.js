@@ -1,10 +1,15 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { useHistory } from 'react-router-dom';
 import { FiLogOut, FiSettings } from 'react-icons/fi';
 import { Header } from './styles';
 import Authentication from '../../../server/Authentication';
 
-export default function DefaultHeader() {
+const propTypes = {
+  title: PropTypes.string.isRequired,
+};
+
+export default function DefaultHeader({ title }) {
   const history = useHistory();
 
   function handleLogout() {
@@ -12,7 +17,7 @@ export default function DefaultHeader() {
   }
   return (
     <Header>
-      <h1>Title</h1>
+      <h1>{title}</h1>
       <div className="header-icons">
         <FiSettings
           size={32}
@@ -24,3 +29,5 @@ export default function DefaultHeader() {
     </Header>
   );
 }
+
+DefaultHeader.propTypes = propTypes;

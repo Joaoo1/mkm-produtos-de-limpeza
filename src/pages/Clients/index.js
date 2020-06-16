@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useHistory } from 'react-router-dom';
 import { FiMoreVertical, FiX, FiCheckSquare, FiEdit } from 'react-icons/fi';
 import { Growl } from 'primereact/growl';
 import { AutoComplete } from 'primereact/autocomplete';
@@ -33,6 +34,7 @@ import Client from '../../models/Client';
 
 export default function Clients() {
   const growl = useRef(null);
+  const history = useHistory();
 
   ClientModal.setAppElement('#root');
   const [modalTitle, setModalTitle] = useState('');
@@ -257,6 +259,22 @@ export default function Clients() {
     );
   }
 
+  function editSale(s) {
+    console.log(s);
+    s.valorBruto = s.valorBruto
+      ? (s.valorBruto = s.valorBruto.toFixed(2))
+      : '0.00';
+    s.valorLiquido = s.valorLiquido
+      ? (s.valorLiquido = s.valorLiquido.toFixed(2))
+      : '0.00';
+    s.valorPago = s.valorPago ? (s.valorPago = s.valorPago.toFixed(2)) : '0.00';
+    s.valorAReceber = s.valorAReceber
+      ? (s.valorAReceber = s.valorAReceber.toFixed(2))
+      : '0.00';
+    s.desconto = s.desconto ? (s.desconto = s.desconto.toFixed(2)) : '0.00';
+    history.push({ pathname: '/sales/edit', state: s });
+  }
+
   return (
     <div>
       <Growl ref={growl} />
@@ -448,7 +466,11 @@ export default function Clients() {
                           onClick={() => changeSaleSituation(sale, idx)}
                         />
                         <br />
-                        <FiEdit size={24} title="Editar venda" />
+                        <FiEdit
+                          size={24}
+                          title="Editar venda"
+                          onClick={() => editSale(sale)}
+                        />
                       </div>
                     </td>
                   </tr>

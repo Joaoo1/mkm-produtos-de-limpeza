@@ -8,6 +8,7 @@ const propTypes = {
   component: PropTypes.oneOfType([PropTypes.element, PropTypes.func])
     .isRequired,
   isPrivate: PropTypes.bool,
+  title: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -17,6 +18,7 @@ const defaultProps = {
 export default function RouteWrapper({
   component: Component,
   isPrivate,
+  title,
   ...rest
 }) {
   const { user } = useContext(AuthContext);
@@ -33,7 +35,7 @@ export default function RouteWrapper({
     <Route
       {...rest}
       render={props => (
-        <DefaultLayout>
+        <DefaultLayout title={title}>
           <Component {...props} />
         </DefaultLayout>
       )}
