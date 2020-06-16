@@ -8,7 +8,34 @@ import {
 import { convertStringToTimeStamp } from '../helpers/FormatDate';
 
 const SaleController = {
-  index(limit) {
+  index(limit, filter) {
+    let query = Firestore.collection(COL_SALES).orderBy('dataVenda', 'desc');
+
+    if (limit && !Number.isNaN(limit)) query = query.limit(limit);
+
+    if (filter) {
+      const { dateRange, situations, address } = filter;
+      if (dateRange.startDate !== '') {
+        query = query.where('dataVenda', '>=', dateRange.startDate);
+      }
+      if (dateRange.endDate !== '') {
+        query = query.where('dataVenda', '<=', dateRange.startDate);
+      }
+      if (situations.paid && !situations.unpaid) {
+        query = query.where('pago', '==', true);
+      } else if (situations.unpaid && !situations.paid) {
+        query = query.where('pago', '==', false);
+      }
+
+      if (address.type && address.name) {
+        let field;
+        if (address.type === 'street') field = 'enderecoCliente';
+        if (address.type === 'neighborhood') field = 'bairroCliente';
+        if (address.type === 'city') field = 'cidadeCliente';
+        query = query.where(field, '==', address.name);
+      }
+    }
+
     function getProductsBySaleId(saleId) {
       const products = [];
       return Firestore.collection(COL_SALES)
@@ -25,8 +52,7 @@ const SaleController = {
           return products;
         });
     }
-    let query = Firestore.collection(COL_SALES).orderBy('dataVenda', 'desc');
-    if (limit && !Number.isNaN(limit)) query = query.limit(limit);
+
     return query.get().then(salesData => {
       const sales = [];
       return Promise.all(

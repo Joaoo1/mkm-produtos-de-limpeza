@@ -120,6 +120,10 @@ export default function Sales() {
         placeHolder="Digite aqui o ID da venda"
         filterList={filterList}
         filterEnabled
+        filterButtonFunction={sales => {
+          setSalesList(sales);
+          setFilteredList(sales);
+        }}
       />
 
       <SalesList id="sales-list">
