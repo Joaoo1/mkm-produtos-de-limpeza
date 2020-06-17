@@ -107,7 +107,11 @@ export default function Dashboard() {
             <p>Atualizar Informações</p>
             <FiRefreshCw size={28} onClick={updateGeneralInfo} />
           </div>
-          <UpdatedAt>{`Atualizado em ${generalInfo.updatedAt}`}</UpdatedAt>
+          <UpdatedAt>
+            {generalInfo.updatedAt
+              ? `Atualizado em ${generalInfo.updatedAt}`
+              : ''}
+          </UpdatedAt>
         </RefreshInfo>
       </header>
       <CardContainer className="p-grid">
@@ -163,7 +167,11 @@ export default function Dashboard() {
           <h2>Vendas realizadas nos ultimos 12 meses</h2>
           <div className="p-grid p-dir-col p-align-end">
             <FiRefreshCw size={30} onClick={updateSalesLast12Months} />
-            <UpdatedAt>{`Atualizado em ${salesLast12Months.updatedAt}`}</UpdatedAt>
+            <UpdatedAt>
+              {salesLast12Months.updatedAt
+                ? `Atualizado em ${salesLast12Months.updatedAt}`
+                : ''}
+            </UpdatedAt>
           </div>
         </div>
 

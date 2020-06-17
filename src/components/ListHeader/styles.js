@@ -41,9 +41,13 @@ const FilterButton = styled(BaseButton)`
 
 const FilterContainer = styled.div`
   display: flex;
-  flex-direction: column;
-  width: 85%;
+  align-items: flex-start;
   margin-right: 15px;
+
+  .p-button {
+    height: var(--height-button);
+    margin-top: 10px;
+  }
 
   .period {
     input {
@@ -52,18 +56,18 @@ const FilterContainer = styled.div`
   }
 
   .address {
-    margin-top: 25px;
-
     .p-dropdown {
       width: 180px;
       text-align: center;
-      margin-right: 10px;
+      margin: 5px 10px 0 0;
+    }
+
+    input {
+      margin-top: 10px;
     }
   }
 
   .situation {
-    margin-top: 25px;
-
     p {
       margin-bottom: 5px;
     }

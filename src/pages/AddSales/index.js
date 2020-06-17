@@ -251,7 +251,10 @@ export default function AddSales() {
       const clients = await ClientController.index();
       setClients(clients);
       setFilteredClients(clients);
+      return;
     }
+
+    setFilteredClients(clients);
   }
 
   function selectClient(index) {

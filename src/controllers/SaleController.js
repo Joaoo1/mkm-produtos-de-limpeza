@@ -19,7 +19,9 @@ const SaleController = {
         query = query.where('dataVenda', '>=', dateRange.startDate);
       }
       if (dateRange.endDate !== '') {
-        query = query.where('dataVenda', '<=', dateRange.startDate);
+        const date = new Date(dateRange.endDate);
+        date.setDate(date.getDate() + 1);
+        query = query.where('dataVenda', '<', date);
       }
       if (situations.paid && !situations.unpaid) {
         query = query.where('pago', '==', true);

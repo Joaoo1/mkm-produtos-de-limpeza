@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Calendar } from 'primereact/calendar';
 import { Checkbox } from 'primereact/checkbox';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { AutoComplete } from 'primereact/autocomplete';
+import { Growl } from 'primereact/growl';
 import { FiPlus, FiFilter } from 'react-icons/fi';
 
 import StreetController from '../../controllers/StreetController';
@@ -18,6 +19,7 @@ import {
   ListHeaderContainer,
   FilterContainer,
 } from './styles';
+import { errorMsg } from '../../helpers/Growl';
 
 const propTypes = {
   btnText: PropTypes.string.isRequired,
@@ -89,12 +91,12 @@ export default function ListHeader({
   filterButtonFunction,
   placeHolder,
 }) {
+  const growl = useRef(null);
   const [showFilter, setShowFilter] = useState(false);
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [situations, setSituations] = useState({
     paid: false,
     unpaid: false,
-    partially: false,
   });
   const addressesOptions = [
     { label: 'Rua', value: 'street' },
@@ -133,7 +135,7 @@ export default function ListHeader({
     setAddressSuggestions(results);
   }
 
-  async function filter() {
+  async function setFilterButtonFunction() {
     const sales = await SaleController.index(null, {
       dateRange,
       situations,
@@ -142,8 +144,34 @@ export default function ListHeader({
     filterButtonFunction(sales);
   }
 
+  function filter() {
+    if (address.length === 0) {
+      setFilterButtonFunction();
+      return;
+    }
+
+    for (let i = 0; i < allAddresses.length; i++) {
+      if (allAddresses[i].name === address) {
+        setFilterButtonFunction();
+        return;
+      }
+    }
+
+    errorMsg(growl, 'Endereço não encontrado');
+  }
+
+  async function cleanFilter() {
+    setDateRange({ startDate: '', endDate: '' });
+    setSituations({ paid: false, unpaud: false });
+    setAddressType('');
+    setAddress('');
+    const allSales = await SaleController.index(100);
+    filterButtonFunction(allSales);
+  }
+
   return (
     <>
+      <Growl ref={growl} />
       <ListHeaderContainer>
         <InputText placeholder={placeHolder} onChange={e => filterList(e)} />
 
@@ -162,9 +190,9 @@ export default function ListHeader({
 
       {showFilter ? (
         <FilterContainer>
-          <div className="period">
-            <p>Informe o período</p>
-            <div>
+          <div className="p-formgroup-inline p-justify-around">
+            <div className="p-grid p-dir-col period">
+              <p>Informe o período</p>
               <Calendar
                 locale={ptbr}
                 dateFormat="dd/mm/yy"
@@ -184,54 +212,56 @@ export default function ListHeader({
                 }
                 placeholder="Data Final"
               />
+              <small>Deixar em branco pegará todas as datas</small>
             </div>
-            <small>Deixar em branco pegará todas as datas</small>
-          </div>
-
-          <div className="situation">
-            <p>Situação do pagamento</p>
-            <label>
-              <Checkbox
-                checked={situations.paid}
-                onChange={() =>
-                  setSituations({ ...situations, paid: !situations.paid })
-                }
-              />
-              Pago
-            </label>
-            <label>
-              <Checkbox
-                checked={situations.unpaid}
-                onChange={() =>
-                  setSituations({ ...situations, unpaid: !situations.unpaid })
-                }
-              />
-              Não Pago
-            </label>
-          </div>
-          <div className="address">
-            <p>Endereço</p>
-            <div>
-              <Dropdown
-                value={addressType}
-                options={addressesOptions}
-                onChange={e => setAddressType(e.value)}
-                placeholder="Selecione o tipo"
-              />
-              <AutoComplete
-                value={address}
-                onChange={e => setAddress(e.target.value)}
-                placeholder="Digite o endereço"
-                completeMethod={suggestsAddresses}
-                suggestions={addressSuggestions}
-              />
+            <div className="situation">
+              <p>Situação do pagamento</p>
+              <label>
+                <Checkbox
+                  checked={situations.paid}
+                  onChange={() =>
+                    setSituations({ ...situations, paid: !situations.paid })
+                  }
+                />
+                Pago
+              </label>
+              <label>
+                <Checkbox
+                  checked={situations.unpaid}
+                  onChange={() =>
+                    setSituations({ ...situations, unpaid: !situations.unpaid })
+                  }
+                />
+                Não Pago
+              </label>
             </div>
-          </div>
-          <div className="buttons">
-            <button type="button">Limpar filtro</button>
-            <button type="button" onClick={filter}>
-              Aplicar filtro
-            </button>
+            <div className="address">
+              <p>Endereço</p>
+              <div className="p-grid p-dir-col p-nogutter">
+                <Dropdown
+                  value={addressType}
+                  options={addressesOptions}
+                  onChange={e => setAddressType(e.value)}
+                  placeholder="Selecione o tipo"
+                />
+                <AutoComplete
+                  value={address}
+                  dropdown
+                  onChange={e => setAddress(e.target.value)}
+                  placeholder="Digite o endereço"
+                  completeMethod={suggestsAddresses}
+                  suggestions={addressSuggestions}
+                />
+              </div>
+            </div>
+            <div className="buttons">
+              <button type="button" onClick={cleanFilter}>
+                Limpar filtro
+              </button>
+              <button type="button" onClick={filter}>
+                Aplicar filtro
+              </button>
+            </div>
           </div>
         </FilterContainer>
       ) : null}
