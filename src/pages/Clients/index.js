@@ -97,8 +97,8 @@ export default function Clients() {
 
   function filterList(event) {
     setFilteredList(
-      clientList.filter(c =>
-        c.nome.toLowerCase().includes(event.target.value.toLowerCase())
+      clientList.filter(client =>
+        client.name.toLowerCase().includes(event.target.value.toLowerCase())
       )
     );
   }
@@ -143,7 +143,7 @@ export default function Clients() {
     }
     if (!c) {
       // If client is null add a new one, otherwise edit
-      setClient(new Client());
+      setClient(new Client({}));
       setModalTitle('Cadastrar novo cliente');
       setModalOpen({ ...modalOpen, addEditModal: true });
     } else {
@@ -178,28 +178,28 @@ export default function Clients() {
    */
 
   function validateForm() {
-    if (client.nome.length === 0) {
+    if (client.name.length === 0) {
       errorMsg(growl, 'Digite o nome do cliente');
       return false;
     }
 
     if (
-      client.endereco.length > 0 &&
-      !addresses.streets.includes(client.endereco)
+      client.street.length > 0 &&
+      !addresses.streets.includes(client.street)
     ) {
       errorMsg(growl, 'Rua não encontrada');
       return false;
     }
 
     if (
-      client.bairro.length > 0 &&
-      !addresses.neighborhoods.includes(client.bairro)
+      client.neighborhood.length > 0 &&
+      !addresses.neighborhoods.includes(client.neighborhood)
     ) {
       errorMsg(growl, 'Bairro não encontrado');
       return false;
     }
 
-    if (client.cidade.length > 0 && !addresses.cities.includes(client.cidade)) {
+    if (client.city.length > 0 && !addresses.cities.includes(client.city)) {
       errorMsg(growl, 'Cidade não encontrada');
       return false;
     }
@@ -218,9 +218,9 @@ export default function Clients() {
         () => {
           fetchClients();
           const toUpdate = {
-            [SALE_CLIENT_STREET]: client.endereco,
-            [SALE_CLIENT_NEIGHBORHOOD]: client.bairro,
-            [SALE_CLIENT_CITY]: client.cidade,
+            [SALE_CLIENT_STREET]: client.street,
+            [SALE_CLIENT_NEIGHBORHOOD]: client.neighborhood,
+            [SALE_CLIENT_CITY]: client.city,
           };
           ClientSalesController.update(client.id, toUpdate);
           successMsg(growl, 'Cliente atualizado com sucesso');
@@ -253,7 +253,7 @@ export default function Clients() {
   }
 
   function changeSaleSituation(sale) {
-    if (sale.pago) {
+    if (sale.paid) {
       infoMsg(growl, 'Esta venda já foi finalizada');
       return;
     }
@@ -265,25 +265,17 @@ export default function Clients() {
         setClientSalesList(newList);
         successMsg(growl, 'Venda finalizada com sucesso');
       },
-      () => {
-        errorMsg(growl, 'Ocorreu um erro ao finalizar venda');
+      error => {
+        errorMsg(growl, error);
       }
     );
   }
 
   function editSale(s) {
-    console.log(s);
-    s.valorBruto = s.valorBruto
-      ? (s.valorBruto = s.valorBruto.toFixed(2))
-      : '0.00';
-    s.valorLiquido = s.valorLiquido
-      ? (s.valorLiquido = s.valorLiquido.toFixed(2))
-      : '0.00';
-    s.valorPago = s.valorPago ? (s.valorPago = s.valorPago.toFixed(2)) : '0.00';
-    s.valorAReceber = s.valorAReceber
-      ? (s.valorAReceber = s.valorAReceber.toFixed(2))
-      : '0.00';
-    s.desconto = s.desconto ? (s.desconto = s.desconto.toFixed(2)) : '0.00';
+    s.grossValue = s.grossValue ? s.grossValue.toFixed(2) : '0.00';
+    s.netValue = s.netValue ? s.netValue.toFixed(2) : '0.00';
+    s.paidValue = s.paidValue ? s.paidValue.toFixed(2) : '0.00';
+    s.discount = s.discount ? s.discount.toFixed(2) : '0.00';
     history.push({ pathname: '/sales/edit', state: s });
   }
 
@@ -311,13 +303,13 @@ export default function Clients() {
           {filteredList.map(c => {
             return (
               <tr key={c.id}>
-                <td>{c.nome}</td>
+                <td>{c.name}</td>
                 <td>
-                  {c.endereco}, {c.complemento}
+                  {c.street}, {c.complement}
                 </td>
-                <td>{c.bairro}</td>
-                <td>{c.cidade}</td>
-                <td>{c.telefone}</td>
+                <td>{c.neighborhood}</td>
+                <td>{c.city}</td>
+                <td>{c.phone}</td>
                 <td className="more-icon">
                   <DropdownList>
                     <FiMoreVertical size={24} />
@@ -351,30 +343,30 @@ export default function Clients() {
         <hr />
         <p>Nome</p>
         <InputText
-          value={client.nome}
+          value={client.name}
           placeholder="Digite o nome do cliente"
-          onChange={e => setClient({ ...client, nome: e.target.value })}
+          onChange={e => setClient({ ...client, name: e.target.value })}
         />
         <p>Rua</p>
         <AutoComplete
           dropdown
-          value={client.endereco}
-          onChange={e => setClient({ ...client, endereco: e.target.value })}
+          value={client.street}
+          onChange={e => setClient({ ...client, street: e.target.value })}
           suggestions={streetSuggestions}
           completeMethod={suggestsStreets}
           placeholder="Digite o nome da rua"
         />
         <p>Complemento</p>
         <InputText
-          value={client.complemento}
-          onChange={e => setClient({ ...client, complemento: e.target.value })}
+          value={client.complement}
+          onChange={e => setClient({ ...client, complement: e.target.value })}
           placeholder="Digite o complemento do endereço"
         />
         <p>Bairro</p>
         <AutoComplete
           dropdown
-          value={client.bairro}
-          onChange={e => setClient({ ...client, bairro: e.target.value })}
+          value={client.neighborhood}
+          onChange={e => setClient({ ...client, neighborhood: e.target.value })}
           suggestions={neighborhoodSuggestions}
           completeMethod={suggestsNeighborhoods}
           placeholder="Digite o nome do bairro"
@@ -384,8 +376,8 @@ export default function Clients() {
             <p>Cidade</p>
             <AutoComplete
               dropdown
-              value={client.cidade}
-              onChange={e => setClient({ ...client, cidade: e.target.value })}
+              value={client.city}
+              onChange={e => setClient({ ...client, city: e.target.value })}
               suggestions={citySuggestions}
               completeMethod={suggestsCities}
               placeholder="Digite o nome da cidade"
@@ -394,8 +386,8 @@ export default function Clients() {
           <div>
             <p>Telefone</p>
             <InputText
-              value={client.telefone}
-              onChange={e => setClient({ ...client, telefone: e.target.value })}
+              value={client.phone}
+              onChange={e => setClient({ ...client, phone: e.target.value })}
               placeholder="Digite o telefone do cliente"
             />
           </div>
@@ -422,7 +414,7 @@ export default function Clients() {
       <ConfirmModal
         isOpen={modalOpen.deleteModal}
         title="Excluir cliente"
-        msg={`Deseja realmente excluir o cliente ${client.nome}?`}
+        msg={`Deseja realmente excluir o cliente ${client.name}?`}
         handleConfirm={() => handleDelete(client.id)}
         handleClose={() => toogleDeleteModal(null)}
       />
@@ -434,7 +426,7 @@ export default function Clients() {
         overlayClassName="modal-overlay"
       >
         <header className="p-grid p-nogutter p-justify-between">
-          <h2>{`Compras feitas por ${client.nome}`}</h2>
+          <h2>{`Compras feitas por ${client.name}`}</h2>
           <FiX size={28} onClick={() => tooglePurchasesModal(null)} />
         </header>
         <hr />
@@ -453,9 +445,9 @@ export default function Clients() {
               clientSalesList.map((sale, idx) => {
                 return (
                   <tr key={sale.id}>
-                    <td className="sale-id">{sale.idVenda}</td>
-                    <td>{sale.dataVenda}</td>
-                    <td>{`R$${sale.valorLiquido.toFixed(2)}`}</td>
+                    <td className="sale-id">{sale.saleId}</td>
+                    <td>{sale.saleDate}</td>
+                    <td>{`R$${sale.netValue.toFixed(2)}`}</td>
                     <td>{sale.situation}</td>
                     <td>
                       <div className="p-grid p-dir-col">

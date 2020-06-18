@@ -14,6 +14,7 @@ const BaseModal = styled(ReactModal)`
   border-radius: 5px;
   padding: 15px 20px;
   font-weight: normal;
+  overflow: visible;
 
   input {
     margin-top: 3px;
@@ -49,6 +50,10 @@ const ProductModal = styled(BaseModal)`
 
 const ClientModal = styled(BaseModal)`
   height: 540px;
+
+  .p-autocomplete-panel {
+    z-index: 9999 !important;
+  }
 
   input {
     width: 100%;

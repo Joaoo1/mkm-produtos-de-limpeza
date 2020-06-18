@@ -16,12 +16,14 @@ const ClientController = {
 
   create(newClient) {
     const client = new ClientFirestore(newClient);
-    return Firestore.collection(COL_CLIENTS).add(client);
+    return Firestore.collection(COL_CLIENTS).add({ ...client });
   },
 
   update(client) {
     const c = new ClientFirestore(client);
-    return Firestore.collection(COL_CLIENTS).doc(client.id).update(c);
+    return Firestore.collection(COL_CLIENTS)
+      .doc(client.id)
+      .update({ ...c });
   },
 
   delete(id) {

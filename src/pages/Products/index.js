@@ -60,7 +60,7 @@ export default function Products() {
   function filterList(event) {
     setFilteredList(
       productList.filter(prod =>
-        prod.nome.toLowerCase().includes(event.target.value.toLowerCase())
+        prod.name.toLowerCase().includes(event.target.value.toLowerCase())
       )
     );
   }
@@ -70,9 +70,9 @@ export default function Products() {
       event.target.value.length === 0 ||
       Number.isNaN(Number(event.target.value))
     ) {
-      setProduct({ ...product, preco: event.target.value.toString() });
+      setProduct({ ...product, price: event.target.value.toString() });
     } else {
-      setProduct({ ...product, preco: new Big(event.target.value) });
+      setProduct({ ...product, price: new Big(event.target.value) });
     }
   }
 
@@ -118,14 +118,14 @@ export default function Products() {
    * CRUD Functions
    */
 
-  // Validating nome and preco fields and if product already exists
+  // Validating name and price fields and if product already exists
   function validateForm() {
     if (product.newName.length === 0) {
       errorMsg(growl, `Digite um nome para o produto`);
       return false;
     }
 
-    if (Number.isNaN(Number(product.preco)) || Number(product.preco) <= 0) {
+    if (Number.isNaN(Number(product.price)) || Number(product.price) <= 0) {
       errorMsg(growl, `Informe um preço válido e maior que zero`);
       return false;
     }
@@ -138,11 +138,11 @@ export default function Products() {
      * so the filter method will not filter any object.
      * */
     const listWithoutThisProduct = productList.filter(
-      value => value.nome !== product.nome
+      value => value.name !== product.name
     );
 
     const productAlreadyExists = listWithoutThisProduct.find(obj => {
-      if (obj.nome.toLowerCase() === product.newName.toLowerCase()) {
+      if (obj.name.toLowerCase() === product.newName.toLowerCase()) {
         return true;
       }
       return false;
@@ -189,7 +189,7 @@ export default function Products() {
     ProductController.delete(p.id).then(
       () => {
         fetchProducts();
-        successMsg(growl, `${product.nome} excluido com sucesso`);
+        successMsg(growl, `${product.name} excluido com sucesso`);
       },
       () => errorMsg(growl, `Ocorreu um erro ao excluir produto`)
     );
@@ -267,8 +267,8 @@ export default function Products() {
         <tbody>
           {filteredList.map((p, idx) => (
             <tr key={p.id}>
-              <td>{p.nome}</td>
-              <td>{`R$${p.preco.toFixed(2)}`}</td>
+              <td>{p.name}</td>
+              <td>{`R$${p.price.toFixed(2)}`}</td>
 
               {p.manageStock ? <td>{p.currentStock}</td> : <td>0</td>}
 
@@ -294,7 +294,7 @@ export default function Products() {
                       type="button"
                       onClick={() => toggleStockHistoryModal(p)}
                     >
-                      Visualizar histórico do estoque de {p.nome}
+                      Visualizar histórico do estoque de {p.name}
                     </DropdownItem>
                   </DropdownContent>
                 </DropdownList>
@@ -308,7 +308,7 @@ export default function Products() {
       <ConfirmModal
         isOpen={modalOpen.deleteModal}
         title="Excluir produto"
-        msg={`Deseja realmente excluir o produto ${product.nome}?`}
+        msg={`Deseja realmente excluir o produto ${product.name}?`}
         handleClose={() => toggleDeleteModal()}
         handleConfirm={() => handleDelete(product)}
       />
@@ -329,7 +329,7 @@ export default function Products() {
           onChange={e => setProduct({ ...product, newName: e.target.value })}
         />
         <p>Preço</p>
-        <input type="number" value={product.preco} onChange={setPrice} />
+        <input type="number" value={product.price} onChange={setPrice} />
         <CheckboxContainer>
           <Checkbox
             checked={product.manageStock}
@@ -367,7 +367,7 @@ export default function Products() {
         overlayClassName="modal-overlay"
       >
         <div className="header">
-          <p>Histórico de estoque de {product.nome}</p>
+          <p>Histórico de estoque de {product.name}</p>
           <FiX
             size={24}
             color="#837B7B"
