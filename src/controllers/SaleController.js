@@ -1,41 +1,22 @@
-import { Firestore, Functions } from '../server/firebase';
+import { Firestore } from '../server/firebase';
 import Sale from '../models/Sale';
+import SaleFirestore from '../models/SaleFirestore';
 import {
   COL_SALES,
   SUBCOL_SALE_PRODUCTS,
   COL_SALE_IDS,
 } from '../constants/firestore';
-import { convertStringToTimeStamp } from '../helpers/FormatDate';
 
 const SaleController = {
-  index(limit, filter) {
+  index(limit, filters) {
     let query = Firestore.collection(COL_SALES).orderBy('dataVenda', 'desc');
 
     if (limit && !Number.isNaN(limit)) query = query.limit(limit);
 
-    if (filter) {
-      const { dateRange, situations, address } = filter;
-      if (dateRange.startDate !== '') {
-        query = query.where('dataVenda', '>=', dateRange.startDate);
-      }
-      if (dateRange.endDate !== '') {
-        const date = new Date(dateRange.endDate);
-        date.setDate(date.getDate() + 1);
-        query = query.where('dataVenda', '<', date);
-      }
-      if (situations.paid && !situations.unpaid) {
-        query = query.where('pago', '==', true);
-      } else if (situations.unpaid && !situations.paid) {
-        query = query.where('pago', '==', false);
-      }
-
-      if (address.type && address.name) {
-        let field;
-        if (address.type === 'street') field = 'enderecoCliente';
-        if (address.type === 'neighborhood') field = 'bairroCliente';
-        if (address.type === 'city') field = 'cidadeCliente';
-        query = query.where(field, '==', address.name);
-      }
+    if (filters) {
+      filters.forEach(filter => {
+        query = query.where(filter.field, filter.operator, filter.value);
+      });
     }
 
     function getProductsBySaleId(saleId) {
@@ -77,31 +58,6 @@ const SaleController = {
   },
 
   create(sale) {
-    // First get a available ID for then register sale in firestore
-    function createSale(idVenda) {
-      const newSale = {};
-      newSale.dataVenda = new Date();
-      newSale.idVenda = idVenda;
-      newSale.pago = sale.paymentMethod === 'paid';
-      newSale.valorBruto = sale.totalProducts.toFixed(2);
-      newSale.valorPago = sale.totalPaid.toFixed(2);
-      newSale.desconto = sale.discount.toFixed(2);
-      newSale.valorLiquido = sale.totalProducts.sub(sale.discount).toFixed(2);
-      newSale.valorAReceber = sale.total.sub(sale.totalPaid).toFixed(2);
-      newSale.idCliente = sale.client.id;
-      newSale.nomeCliente = sale.client.nome;
-      if (sale.seller) newSale.seller = sale.seller;
-      if (sale.sellerUid) newSale.sellerUid = sale.sellerUid;
-      if (!newSale.pago) {
-        newSale.enderecoCliente = sale.client.endereco;
-        newSale.complementoCliente = sale.client.complemento;
-        newSale.bairroCliente = sale.client.bairro;
-        newSale.cidadeCliente = sale.client.cidade;
-        newSale.telefone = sale.client.telefone;
-      }
-      Firestore.collection(COL_SALE_IDS).add({ venda: idVenda });
-      return Firestore.collection(COL_SALES).add(newSale);
-    }
     // Generate a ID for sale that has not been used
     return Firestore.collection(COL_SALE_IDS)
       .get()
@@ -115,7 +71,17 @@ const SaleController = {
         for (let i = 1000; i < 10000; i++) {
           if (!usedIds.includes(i)) {
             // A valid ID was found, now format sale and create it
-            return createSale(i);
+            const mSale = new SaleFirestore({
+              ...sale,
+              saleId: i,
+              paid: sale.paymentMethod === 'paid',
+            });
+
+            Firestore.collection(COL_SALE_IDS).add({ venda: i });
+            return Firestore.collection(COL_SALES).add({
+              ...mSale,
+              dataVenda: new Date(),
+            });
           }
         }
 
@@ -124,49 +90,27 @@ const SaleController = {
   },
 
   async update(sale, isFinishSale) {
+    let mSale;
+
     if (isFinishSale) {
-      const finish = Functions.httpsCallable('finishSale');
-      return finish({
+      mSale = new SaleFirestore({
         ...sale,
-        dataVenda: convertStringToTimeStamp(sale.dataVenda),
-        valorBruto: sale.valorBruto.toFixed(2),
-        valorPago: sale.valorPago.toFixed(2),
-        desconto: sale.desconto.toFixed(2),
-        valorLiquido: sale.valorLiquido.toFixed(2),
-        valorAReceber: sale.valorAReceber.toFixed(2),
+        paidValue: sale.netValue,
+        paid: true,
+        valueToReceive: '0.00',
       });
-    }
-    const newSale = {};
-    newSale.idVenda = sale.idVenda;
-    newSale.pago = sale.paymentMethod === 'paid';
-    newSale.valorBruto = sale.totalProducts.toFixed(2);
-    newSale.valorPago = sale.totalPaid.toFixed(2);
-    newSale.desconto = sale.discount.toFixed(2);
-    newSale.valorLiquido = sale.totalProducts.sub(sale.discount).toFixed(2);
-    newSale.valorAReceber = sale.total.sub(sale.totalPaid).toFixed(2);
-    newSale.idCliente = sale.client.idCliente;
-    newSale.nomeCliente = sale.client.nomeCliente;
-    if (sale.seller) newSale.seller = sale.seller;
-    if (sale.sellerUid) newSale.sellerUid = sale.sellerUid;
-    if (!newSale.pago) {
-      if (newSale.enderecoCliente)
-        newSale.enderecoCliente = sale.enderecoCliente;
-      if (newSale.complementoCliente)
-        newSale.complementoCliente = sale.complementoCliente;
-      if (newSale.bairroCliente) newSale.bairroCliente = sale.bairroCliente;
-      if (newSale.cidadeCliente) newSale.cidadeCliente = sale.cidadeCliente;
-      if (newSale.telefone) newSale.telefone = sale.telefone;
+    } else {
+      mSale = new SaleFirestore({
+        ...sale,
+        paid: sale.paymentMethod === 'paid',
+      });
     }
 
-    return Firestore.collection('vendas')
-      .doc(sale.id)
-      .update({
-        ...newSale,
-        dataVenda: convertStringToTimeStamp(sale.dataVenda),
-      });
+    return Firestore.collection(COL_SALES).doc(sale.id).update(mSale);
   },
 
   delete(saleId, idVenda) {
+    // Deleting all products from this sale
     Firestore.collection(COL_SALES)
       .doc(saleId)
       .collection(SUBCOL_SALE_PRODUCTS)
@@ -175,6 +119,7 @@ const SaleController = {
         snapshot.docs.forEach(sale => sale.ref.delete());
       });
 
+    // Making the ID available to be used by another sale
     Firestore.collection(COL_SALE_IDS)
       .where('venda', '==', idVenda)
       .get()

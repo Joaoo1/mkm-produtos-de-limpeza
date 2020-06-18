@@ -1,6 +1,10 @@
 import { Firestore } from '../server/firebase';
 import Sale from '../models/Sale';
-import { COL_SALES, SUBCOL_SALE_PRODUCTS } from '../constants/firestore';
+import {
+  COL_SALES,
+  SUBCOL_SALE_PRODUCTS,
+  SALE_CLIENT_ID,
+} from '../constants/firestore';
 
 const ClientSalesController = {
   async index(clientId) {
@@ -39,6 +43,14 @@ const ClientSalesController = {
           })
         ).then(sales => (sales.length > 0 ? sales[0] : []));
       });
+  },
+  update(clientId, toUpdate) {
+    Firestore.collection(COL_SALES)
+      .where(SALE_CLIENT_ID, '==', clientId)
+      .get()
+      .then(snapshot =>
+        snapshot.docs.forEach(sale => sale.ref.update(toUpdate))
+      );
   },
 };
 

@@ -14,7 +14,7 @@ export default function savePDF(list) {
       totalToReceive: sale.valorAReceber ? sale.valorAReceber.toFixed(2) : '',
       address,
       neighborhood: sale.bairroCliente || '',
-      phone: sale.telefone || '',
+      clientPhone: sale.telefone || '',
     };
 
     return formattedSale;

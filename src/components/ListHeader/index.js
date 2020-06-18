@@ -8,6 +8,14 @@ import { AutoComplete } from 'primereact/autocomplete';
 import { Growl } from 'primereact/growl';
 import { FiPlus, FiFilter } from 'react-icons/fi';
 
+import {
+  SALE_CLIENT_STREET,
+  SALE_CLIENT_NEIGHBORHOOD,
+  SALE_CLIENT_CITY,
+  SALE_DATE,
+  SALE_PAID,
+} from '../../constants/firestore';
+
 import StreetController from '../../controllers/StreetController';
 import Neighborhoodcontroller from '../../controllers/NeighborhoodController';
 import CityController from '../../controllers/CityController';
@@ -99,9 +107,9 @@ export default function ListHeader({
     unpaid: false,
   });
   const addressesOptions = [
-    { label: 'Rua', value: 'street' },
-    { label: 'Bairro', value: 'neighborhood' },
-    { label: 'Cidade', value: 'city' },
+    { label: 'Rua', value: SALE_CLIENT_STREET },
+    { label: 'Bairro', value: SALE_CLIENT_NEIGHBORHOOD },
+    { label: 'Cidade', value: SALE_CLIENT_CITY },
   ];
   const [allAddresses, setAllAddresses] = useState([]);
   const [addressType, setAddressType] = useState('');
@@ -110,15 +118,15 @@ export default function ListHeader({
 
   useEffect(() => {
     async function fetchAddress() {
-      if (addressType === 'street') {
+      if (addressType === SALE_CLIENT_STREET) {
         const streets = await StreetController.index();
         setAllAddresses(streets);
       }
-      if (addressType === 'neighborhood') {
+      if (addressType === SALE_CLIENT_NEIGHBORHOOD) {
         const neighborhood = await Neighborhoodcontroller.index();
         setAllAddresses(neighborhood);
       }
-      if (addressType === 'city') {
+      if (addressType === SALE_CLIENT_CITY) {
         const cities = await CityController.index();
         setAllAddresses(cities);
       }
@@ -135,29 +143,80 @@ export default function ListHeader({
     setAddressSuggestions(results);
   }
 
-  async function setFilterButtonFunction() {
-    const sales = await SaleController.index(null, {
-      dateRange,
-      situations,
-      address: { type: addressType, name: address },
-    });
-    filterButtonFunction(sales);
-  }
+  async function filter() {
+    const filters = [];
 
-  function filter() {
-    if (address.length === 0) {
-      setFilterButtonFunction();
-      return;
-    }
-
-    for (let i = 0; i < allAddresses.length; i++) {
-      if (allAddresses[i].name === address) {
-        setFilterButtonFunction();
-        return;
+    function checkAddressFilter() {
+      // Nothing was digit, so don't apply filter
+      if (address.length === 0) {
+        return true;
       }
+
+      if (addressType.length === 0) {
+        errorMsg(growl, 'Selecione o tipo de endereço');
+        return false;
+      }
+      // Checking if address exists
+      for (let i = 0; i < allAddresses.length; i++) {
+        if (allAddresses[i].name === address) {
+          filters.push({ field: addressType, operator: '==', value: address });
+          return true;
+        }
+      }
+      errorMsg(growl, 'Endereço não encontrado!');
+      return false;
     }
 
-    errorMsg(growl, 'Endereço não encontrado');
+    function checkDateRange() {
+      console.log(dateRange);
+      if (!dateRange.startDate && !dateRange.endDate) {
+        return true;
+      }
+
+      if (dateRange.startDate) {
+        console.log('startDate');
+        filters.push({
+          field: SALE_DATE,
+          operator: '>=',
+          value: dateRange.startDate,
+        });
+      }
+
+      if (dateRange.endDate) {
+        /*
+         * Because of the way the database works, it is necessary to increment
+         * 1 day on the end date and use the operator less than instead of equal
+         * to or less than the end date
+         */
+        const date = new Date(dateRange.endDate);
+        date.setDate(date.getDate() + 1);
+        console.log('endDate', date, dateRange);
+        filters.push({
+          field: SALE_DATE,
+          operator: '<',
+          value: date,
+        });
+      }
+
+      return true;
+    }
+
+    function checkSituation() {
+      if (situations.paid && !situations.unpaid) {
+        filters.push({ field: SALE_PAID, operator: '==', value: true });
+      } else if (situations.unpaid && !situations.paid) {
+        filters.push({ field: SALE_PAID, operator: '==', value: false });
+      }
+
+      return true;
+    }
+
+    if (!checkAddressFilter()) return;
+    if (!checkDateRange()) return;
+    if (!checkSituation()) return;
+
+    const sales = await SaleController.index(null, filters);
+    filterButtonFunction(sales);
   }
 
   async function cleanFilter() {

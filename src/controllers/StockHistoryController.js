@@ -18,16 +18,16 @@ const StockHistoryController = {
 
     return stockHistories;
   },
-  async create(product, sale) {
+  async create(product, client) {
     const doc = await Firestore.collection(COL_PRODUCTS).doc(product.id).get();
     const { currentStock } = doc.data();
 
     const stockHistory = {
       date: new Date(),
-      quantity: product.quantidade,
+      quantity: product.quantity,
       stockChange: false,
-      currentStock: currentStock - product.quantidade,
-      client: sale.client,
+      currentStock: currentStock - product.quantity,
+      client,
       saleProductId: product.id,
     };
 
@@ -36,7 +36,7 @@ const StockHistoryController = {
       .collection(SUBCOL_STOCK_HISTORY)
       .add(stockHistory);
 
-    doc.ref.update({ currentStock: currentStock - product.quantidade });
+    doc.ref.update({ currentStock: currentStock - product.quantity });
   },
   async update(product) {
     const doc = await Firestore.collection(COL_PRODUCTS).doc(product.id).get();

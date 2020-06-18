@@ -36,17 +36,17 @@ export default function EditSales() {
     paymentMethod: 'unpaid',
     hasDiscount: false,
     products: [],
-    client: { nomeCliente: '' },
+    client: { name: '' },
     total: new Big('0'),
   });
 
   const [values, setValues] = useState({
-    totalProducts: new Big('0.00'),
-    totalPaid: new Big('0.00'),
+    grossValue: new Big('0.00'),
+    paidValue: new Big('0.00'),
     discount: new Big('0.00'),
   });
 
-  const [totalToReceive, setTotalToReceive] = useState(new Big(0));
+  const [valueToReceive, setValueToReceive] = useState(new Big(0));
 
   function getPaymentMethod(situation) {
     switch (situation) {
@@ -71,52 +71,38 @@ export default function EditSales() {
   }, []);
 
   useEffect(() => {
-    const newTotal = values.totalProducts.minus(values.discount);
+    const newTotal = values.grossValue.minus(values.discount);
 
     setSale({ ...sale, total: newTotal });
-    setTotalToReceive(newTotal.sub(values.totalPaid));
+    setValueToReceive(newTotal.sub(values.paidValue));
     // eslint-disable-next-line
   }, [values]);
 
   useEffect(() => {
-    const stateSale = location.state;
+    const { state } = location;
     setValues({
-      totalProducts: new Big(stateSale.valorBruto),
-      totalPaid: new Big(stateSale.valorPago),
-      discount: new Big(stateSale.desconto),
+      grossValue: new Big(state.grossValue),
+      paidValue: new Big(state.paidValue),
+      discount: new Big(state.discount),
     });
 
-    stateSale.paymentMethod = getPaymentMethod(stateSale.situation);
-    const discount = stateSale.desconto
-      ? new Big(stateSale.desconto)
-      : new Big('0.00');
-    stateSale.hasDiscount = discount.gt(new Big('0.00'));
-    stateSale.client = {};
-    Object.keys(stateSale).forEach(key => {
-      if (key === 'idCliente') stateSale.client.idCliente = stateSale[key];
-      if (key === 'enderecoCliente')
-        stateSale.client.enderecoCliente = stateSale[key];
-      if (key === 'complementoCliente')
-        stateSale.client.complementoCliente = stateSale[key];
-      if (key === 'bairroCliente')
-        stateSale.client.bairroCliente = stateSale[key];
-      if (key === 'cidadeCliente')
-        stateSale.client.cidadeCliente = stateSale[key];
-      if (key === 'nomeCliente') stateSale.client.nomeCliente = stateSale[key];
-      if (key === 'telefone') stateSale.client.telefone = stateSale[key];
-    });
+    state.paymentMethod = getPaymentMethod(state.situation);
+    const discount = new Big(state.discount);
+    state.hasDiscount = discount.gt(new Big('0.00'));
     setSale({
-      id: stateSale.id,
-      idVenda: stateSale.idVenda,
-      dataVenda: stateSale.dataVenda,
-      paymentMethod: stateSale.paymentMethod,
-      products: stateSale.products.map(p => {
+      /* id: state.id,
+      saleId: state.saleId,
+      saleDate: state.saleDate,
+      paymentMethod: state.paymentMethod,
+      client: state.client,
+      hasDiscount: state.hasDiscount, */
+      ...state,
+      products: state.products.map(p => {
         return { ...p, preco: new Big(p.preco) };
       }),
-      client: stateSale.client,
-      total: new Big(stateSale.valorLiquido),
-      hasDiscount: stateSale.hasDiscount,
+      total: new Big(state.netValue),
     });
+    // eslint-disable-next-line
   }, []);
 
   // Setting Autocomplete suggestions
@@ -130,16 +116,16 @@ export default function EditSales() {
   }
 
   function incrementTotal(preco, quantidade) {
-    const newTotal = preco.mul(quantidade).plus(values.totalProducts);
+    const newTotal = preco.mul(quantidade).plus(values.grossValue);
     if (sale.paymentMethod === 'paid') {
       setValues({
         ...values,
-        totalPaid: newTotal.sub(values.discount),
-        totalProducts: newTotal,
+        paidValue: newTotal.sub(values.discount),
+        grossValue: newTotal,
       });
       return;
     }
-    setValues({ ...values, totalProducts: newTotal });
+    setValues({ ...values, grossValue: newTotal });
   }
 
   function addProductToList(event) {
@@ -173,7 +159,7 @@ export default function EditSales() {
 
     if (
       sale.paymentMethod === 'partially' &&
-      values.totalPaid.eq(new Big('0.00'))
+      values.paidValue.eq(new Big('0.00'))
     ) {
       errorMsg(growl, 'Informe o valor pago');
       return false;
@@ -184,7 +170,7 @@ export default function EditSales() {
       return false;
     }
 
-    if (totalToReceive.lt(new Big(0))) {
+    if (valueToReceive.lt(new Big(0))) {
       errorMsg(growl, 'Valor pago é maior que o valor da venda');
       return false;
     }
@@ -194,7 +180,11 @@ export default function EditSales() {
 
   function editSale() {
     if (validateSale()) {
-      SaleController.update({ ...sale, ...values }).then(
+      SaleController.update({
+        ...sale,
+        ...values,
+        netValue: sale.total,
+      }).then(
         () => successMsg(growl, 'Venda Atualizada com sucesso'),
         error => errorMsg(growl, error.toString())
       );
@@ -234,26 +224,26 @@ export default function EditSales() {
     if (event.target.value === 'paid') {
       setValues({
         ...values,
-        totalPaid: values.totalProducts.sub(values.discount),
+        paidValue: values.grossValue.sub(values.discount),
       });
     } else {
       setValues({
         ...values,
-        totalPaid: new Big(0),
+        paidValue: new Big(0),
       });
     }
 
     setSale({ ...sale, paymentMethod: event.target.value });
   }
 
-  function changeTotalPaid(event) {
+  function changePaidValue(event) {
     if (
       event.target.value.length === 0 ||
       Number.isNaN(Number(event.target.value))
     ) {
-      setValues({ ...values, totalPaid: new Big('0') });
+      setValues({ ...values, paidValue: new Big('0') });
     } else {
-      setValues({ ...values, totalPaid: new Big(event.target.value) });
+      setValues({ ...values, paidValue: new Big(event.target.value) });
     }
   }
 
@@ -327,7 +317,7 @@ export default function EditSales() {
             <div className="p-grid p-nogutter">
               <InputText
                 id="clients"
-                value={sale.client.nomeCliente}
+                value={sale.client.name}
                 placeholder="Selecione um cliente"
                 disabled
               />
@@ -368,7 +358,7 @@ export default function EditSales() {
               <InputText
                 id="paidValue"
                 placeholder="Digite o valor pago"
-                onChange={changeTotalPaid}
+                onChange={changePaidValue}
               />
             ) : null}
           </div>
@@ -399,7 +389,7 @@ export default function EditSales() {
                 <td>
                   <p>Produtos:</p>
                 </td>
-                <td>{`R$${values.totalProducts.toFixed(2)}`}</td>
+                <td>{`R$${values.grossValue.toFixed(2)}`}</td>
               </tr>
               <tr>
                 <td>
@@ -422,7 +412,7 @@ export default function EditSales() {
                 <td>
                   <p>Valor Pago:</p>
                 </td>
-                <td>{`R$${values.totalPaid.toFixed(2)}`}</td>
+                <td>{`R$${values.paidValue.toFixed(2)}`}</td>
               </tr>
               <tr>
                 <td colSpan="2">
@@ -433,7 +423,7 @@ export default function EditSales() {
                 <td>
                   <p>Valor a Receber:</p>
                 </td>
-                <td>{`R$${totalToReceive.toFixed(2)}`}</td>
+                <td>{`R$${valueToReceive.toFixed(2)}`}</td>
               </tr>
             </tbody>
           </table>

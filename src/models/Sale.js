@@ -4,6 +4,8 @@ import { convertTimeStampToString } from '../helpers/FormatDate';
 export default class Sale {
   constructor({
     id,
+    seller,
+    sellerUid,
     dataPagamento,
     dataVenda,
     idVenda,
@@ -20,36 +22,35 @@ export default class Sale {
     cidadeCliente,
     enderecoCliente,
     telefone,
-    seller,
-    sellerUid,
   }) {
-    this.dataPagamento = dataPagamento
+    if (id) this.id = id;
+    this.paymentDate = dataPagamento
       ? convertTimeStampToString(dataPagamento)
       : '';
 
-    this.dataVenda = dataVenda ? convertTimeStampToString(dataVenda) : '';
-    this.idVenda = idVenda;
-    this.pago = pago;
-    this.valorBruto = new Big(valorBruto);
-    this.valorLiquido = new Big(valorLiquido);
-    this.valorPago = new Big(valorPago);
-    this.valorAReceber = new Big(valorAReceber);
-    this.desconto = new Big(desconto);
-    this.idCliente = idCliente;
-    this.nomeCliente = nomeCliente;
+    this.saleDate = dataVenda ? convertTimeStampToString(dataVenda) : '';
+    this.saleId = idVenda;
+    this.paid = pago;
+    this.grossValue = new Big(valorBruto);
+    this.netValue = new Big(valorLiquido);
+    this.paidValue = new Big(valorPago);
+    this.valueToReceive = new Big(valorAReceber);
+    this.discount = new Big(desconto);
     this.situation = this.getPaymentSituation();
     if (seller) this.seller = seller;
-    if (id) this.id = id;
     if (sellerUid) this.sellerUid = sellerUid;
-    if (bairroCliente) this.bairroCliente = bairroCliente;
-    if (cidadeCliente) this.cidadeCliente = cidadeCliente;
-    if (enderecoCliente) this.enderecoCliente = enderecoCliente;
-    if (complementoCliente) this.complementoCliente = complementoCliente;
-    if (telefone) this.telefone = telefone;
+    this.client = {
+      id: idCliente,
+      name: nomeCliente,
+      neighborhood: bairroCliente || '',
+      city: cidadeCliente || '',
+      street: enderecoCliente || '',
+      complement: complementoCliente || '',
+      phone: telefone || '',
+    };
   }
 
   getPaymentSituation() {
-    // Set payment situation
     if (this.pago) {
       return 'PAGO';
     }

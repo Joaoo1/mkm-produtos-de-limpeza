@@ -46,7 +46,7 @@ export default function Sales() {
   function filterList(event) {
     setFilteredList(
       salesList.filter(sale =>
-        sale.idVenda.toString().includes(event.target.value)
+        sale.saleId.toString().includes(event.target.value)
       )
     );
   }
@@ -61,26 +61,26 @@ export default function Sales() {
   }
 
   function handleHistory(pathname, state) {
-    state.valorBruto = state.valorBruto
-      ? (state.valorBruto = state.valorBruto.toFixed(2))
+    state.grossValue = state.grossValue
+      ? (state.grossValue = state.grossValue.toFixed(2))
       : '0.00';
-    state.valorLiquido = state.valorLiquido
-      ? (state.valorLiquido = state.valorLiquido.toFixed(2))
+    state.netValue = state.netValue
+      ? (state.netValue = state.netValue.toFixed(2))
       : '0.00';
-    state.valorPago = state.valorPago
-      ? (state.valorPago = state.valorPago.toFixed(2))
+    state.paidValue = state.paidValue
+      ? (state.paidValue = state.paidValue.toFixed(2))
       : '0.00';
-    state.valorAReceber = state.valorAReceber
-      ? (state.valorAReceber = state.valorAReceber.toFixed(2))
+    state.valueToReceive = state.valueToReceive
+      ? (state.valueToReceive = state.valueToReceive.toFixed(2))
       : '0.00';
-    state.desconto = state.desconto
-      ? (state.desconto = state.desconto.toFixed(2))
+    state.discount = state.discount
+      ? (state.discount = state.discount.toFixed(2))
       : '0.00';
     history.push({ pathname, state });
   }
 
-  function handleDelete(sale, idVenda) {
-    SaleController.delete(sale, idVenda).then(() => {
+  function handleDelete(sale, saleId) {
+    SaleController.delete(sale, saleId).then(() => {
       successMsg(growl, 'Venda excluida com sucesso');
       fetchSales();
       toggleDeleteModal();
@@ -88,7 +88,7 @@ export default function Sales() {
   }
 
   function changeSaleSituation(sale) {
-    if (sale.pago) {
+    if (sale.paid) {
       infoMsg(growl, 'Esta venda já foi finalizada');
       return;
     }
@@ -105,7 +105,7 @@ export default function Sales() {
   }
 
   return (
-    <div>
+    <>
       <FloatingButton>
         <FiPrinter size={30} color="white" onClick={generateReport} />
       </FloatingButton>
@@ -142,19 +142,19 @@ export default function Sales() {
         <tbody>
           {filteredList &&
             Array.isArray(filteredList) &&
-            filteredList.map(el => (
-              <tr key={el.idVenda}>
-                <td>{el.idVenda}</td>
+            filteredList.map(sale => (
+              <tr key={sale.saleId}>
+                <td>{sale.saleId}</td>
                 <td>
                   R$
-                  {el.valorLiquido.toFixed(2)}
+                  {sale.netValue.toFixed(2)}
                 </td>
-                <td>{el.dataVenda}</td>
-                <td>{el.nomeCliente}</td>
-                <td>{el.situation}</td>
+                <td>{sale.saleDate}</td>
+                <td>{sale.client.name}</td>
+                <td>{sale.situation}</td>
                 <td className="products">
-                  {el.products &&
-                    el.products.map(product => (
+                  {sale.products &&
+                    sale.products.map(product => (
                       <p key={product.id}>
                         {`${product.quantidade}x ${product.nome}`}
                       </p>
@@ -164,15 +164,15 @@ export default function Sales() {
                   <DropdownList>
                     <FiMoreVertical size={24} />
                     <DropdownContent>
-                      <DropdownItem onClick={() => changeSaleSituation(el)}>
+                      <DropdownItem onClick={() => changeSaleSituation(sale)}>
                         Alterar situação de pagamento
                       </DropdownItem>
                       <DropdownItem
-                        onClick={() => handleHistory('/sales/edit', el)}
+                        onClick={() => handleHistory('/sales/edit', sale)}
                       >
                         Editar venda
                       </DropdownItem>
-                      <DropdownItem onClick={() => toggleDeleteModal(el)}>
+                      <DropdownItem onClick={() => toggleDeleteModal(sale)}>
                         Excluir venda
                       </DropdownItem>
                     </DropdownContent>
@@ -187,10 +187,10 @@ export default function Sales() {
       <ConfirmModal
         isOpen={deleteModalOpen}
         title="Excluir venda"
-        msg={`Deseja realmente excluir a venda ${sale.idVenda}?`}
+        msg={`Deseja realmente excluir a venda ${sale.saleId}?`}
         handleClose={() => toggleDeleteModal(null)}
-        handleConfirm={() => handleDelete(sale.id, sale.idVenda)}
+        handleConfirm={() => handleDelete(sale.id, sale.saleId)}
       />
-    </div>
+    </>
   );
 }

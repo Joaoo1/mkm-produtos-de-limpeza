@@ -11,7 +11,7 @@ export function convertDateToString(date) {
   return moment(date).format('DD/MM/YYYY HH:mm');
 }
 
-export function convertStringToTimeStamp(dateString) {
+export function convertStringToTimestamp(dateString) {
   const date = moment(dateString, 'DD/MM/YYYY HH:mm').toDate();
   const timestamp = app.firestore.Timestamp.fromDate(date);
   return timestamp;

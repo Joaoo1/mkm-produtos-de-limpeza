@@ -1,5 +1,6 @@
 import { Firestore } from '../server/firebase';
 import { COL_CLIENTS } from '../constants/firestore';
+import ClientFirestore from '../models/ClientFirestore';
 import Client from '../models/Client';
 
 const ClientController = {
@@ -13,18 +14,14 @@ const ClientController = {
     return clients;
   },
 
-  create(client) {
-    const c = new Client(client);
-    c.formatToFirestore();
-    return Firestore.collection(COL_CLIENTS).add({ ...c });
+  create(newClient) {
+    const client = new ClientFirestore(newClient);
+    return Firestore.collection(COL_CLIENTS).add(client);
   },
 
   update(client) {
-    const c = new Client(client);
-    c.formatToFirestore();
-    return Firestore.collection(COL_CLIENTS)
-      .doc(client.id)
-      .update({ ...c });
+    const c = new ClientFirestore(client);
+    return Firestore.collection(COL_CLIENTS).doc(client.id).update(c);
   },
 
   delete(id) {

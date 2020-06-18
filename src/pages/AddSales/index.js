@@ -43,13 +43,13 @@ export default function AddSales() {
     paymentMethod: 'unpaid',
     hasDiscount: false,
     products: [],
-    client: { nome: '' },
+    client: { name: '' },
     total: new Big('0'),
   });
 
   const [values, setValues] = useState({
-    totalProducts: new Big('0.00'),
-    totalPaid: new Big('0.00'),
+    grossValue: new Big('0.00'),
+    paidValue: new Big('0.00'),
     discount: new Big('0.00'),
   });
 
@@ -70,10 +70,10 @@ export default function AddSales() {
   }, []);
 
   useEffect(() => {
-    const newTotal = values.totalProducts.minus(values.discount);
+    const newTotal = values.grossValue.minus(values.discount);
 
     setSale({ ...sale, total: newTotal });
-    setTotalToReceive(newTotal.sub(values.totalPaid));
+    setTotalToReceive(newTotal.sub(values.paidValue));
     // eslint-disable-next-line
   }, [values]);
 
@@ -88,17 +88,17 @@ export default function AddSales() {
   }
 
   function incrementTotal(preco, quantidade) {
-    const newTotal = preco.mul(quantidade).plus(values.totalProducts);
+    const newTotal = preco.mul(quantidade).plus(values.grossValue);
     if (sale.paymentMethod === 'paid') {
       setValues({
         ...values,
-        totalPaid: newTotal.sub(values.discount),
-        totalProducts: newTotal,
+        paidValue: newTotal.sub(values.discount),
+        grossValue: newTotal,
       });
       return;
     }
 
-    setValues({ ...values, totalProducts: newTotal });
+    setValues({ ...values, grossValue: newTotal });
   }
 
   function resetSale() {
@@ -106,13 +106,13 @@ export default function AddSales() {
       paymentMethod: 'unpaid',
       hasDiscount: false,
       products: [],
-      client: { nome: '' },
+      client: { name: '' },
       total: new Big('0'),
     });
 
     setValues({
-      totalProducts: new Big('0.00'),
-      totalPaid: new Big('0.00'),
+      grossValue: new Big('0.00'),
+      paidValue: new Big('0.00'),
       discount: new Big('0.00'),
     });
 
@@ -170,14 +170,14 @@ export default function AddSales() {
       return false;
     }
 
-    if (!sale.client.id || sale.client.nome.length === 0) {
+    if (!sale.client.id || sale.client.name.length === 0) {
       errorMsg(growl, 'Selecione um cliente');
       return false;
     }
 
     if (
       sale.paymentMethod === 'partially' &&
-      values.totalPaid.eq(new Big('0.00'))
+      values.paidValue.eq(new Big('0.00'))
     ) {
       errorMsg(growl, 'Informe o valor pago');
       return false;
@@ -200,6 +200,7 @@ export default function AddSales() {
     if (validateSale()) {
       SaleController.create({ ...sale, ...values }).then(
         saleData => {
+          // Sale is created, now add the products in it
           SaleProductController.create(saleData.id, sale.products).then(
             () => {
               successMsg(growl, 'Venda adicionada com sucesso');
@@ -207,16 +208,13 @@ export default function AddSales() {
             },
             () => errorMsg(growl, 'Ocorre um erro ao adicionar os produtos')
           );
+          // Register stock history too
           sale.products.forEach(p => {
             if (p.manageStock) {
-              StockHistoryController.create(p, {
-                client: sale.client.nome,
-              });
+              StockHistoryController.create(p, sale.client.name);
             }
           });
         },
-        // Sale is created, now is time to add the products in it
-
         () => errorMsg(growl, 'Ocorreu um erro ao adicionar venda')
       );
     }
@@ -236,8 +234,8 @@ export default function AddSales() {
     const deletedProduct = sale.products[index];
     const subtract = deletedProduct.preco.mul(deletedProduct.quantidade);
     const newTotal = sale.total.sub(subtract);
-    const newTotalProducts = values.totalProducts.sub(subtract);
-    setValues({ ...values, totalProducts: newTotalProducts });
+    const newGrossValue = values.grossValue.sub(subtract);
+    setValues({ ...values, grossValue: newGrossValue });
     setSale({
       ...sale,
       products: sale.products.filter((product, idx) => idx !== index),
@@ -265,7 +263,7 @@ export default function AddSales() {
   function filterClientList(event) {
     setFilteredClients(
       clients.filter(client =>
-        client.nome.toLowerCase().includes(event.target.value)
+        client.name.toLowerCase().includes(event.target.value)
       )
     );
   }
@@ -293,26 +291,26 @@ export default function AddSales() {
     if (event.target.value === 'paid') {
       setValues({
         ...values,
-        totalPaid: values.totalProducts.sub(values.discount),
+        paidValue: values.grossValue.sub(values.discount),
       });
     } else {
       setValues({
         ...values,
-        totalPaid: new Big(0),
+        paidValue: new Big(0),
       });
     }
 
     setSale({ ...sale, paymentMethod: event.target.value });
   }
 
-  function changeTotalPaid(event) {
+  function changePaidValue(event) {
     if (
       event.target.value.length === 0 ||
       Number.isNaN(Number(event.target.value))
     ) {
-      setValues({ ...values, totalPaid: new Big('0') });
+      setValues({ ...values, paidValue: new Big('0') });
     } else {
-      setValues({ ...values, totalPaid: new Big(event.target.value) });
+      setValues({ ...values, paidValue: new Big(event.target.value) });
     }
   }
 
@@ -473,7 +471,7 @@ export default function AddSales() {
               <InputText
                 id="paidValue"
                 placeholder="Digite o valor pago"
-                onChange={changeTotalPaid}
+                onChange={changePaidValue}
               />
             ) : null}
           </div>
@@ -503,7 +501,7 @@ export default function AddSales() {
                 <td>
                   <p>Produtos:</p>
                 </td>
-                <td>{`R$${values.totalProducts.toFixed(2)}`}</td>
+                <td>{`R$${values.grossValue.toFixed(2)}`}</td>
               </tr>
               <tr>
                 <td>
@@ -526,7 +524,7 @@ export default function AddSales() {
                 <td>
                   <p>Valor Pago:</p>
                 </td>
-                <td>{`R$${values.totalPaid.toFixed(2)}`}</td>
+                <td>{`R$${values.paidValue.toFixed(2)}`}</td>
               </tr>
               <tr>
                 <td colSpan="2">
