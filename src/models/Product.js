@@ -5,8 +5,8 @@ export default class Product {
     this.id = id;
     this.name = nome;
     this.newName = nome;
-    this.price = new Big(preco);
+    this.price = preco ? new Big(preco) : new Big('0.00');
     this.currentStock = currentStock || 0;
-    this.manageStock = manageStock;
+    this.manageStock = manageStock || false;
   }
 }

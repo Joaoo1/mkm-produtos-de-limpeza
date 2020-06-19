@@ -43,6 +43,11 @@ const FilterContainer = styled.div`
   display: flex;
   align-items: flex-start;
   margin-right: 15px;
+  max-width: 820px;
+
+  .p-formgroup-inline {
+    width: 100%;
+  }
 
   .p-button {
     height: var(--height-button);
@@ -50,12 +55,14 @@ const FilterContainer = styled.div`
   }
 
   .period {
+    margin: 10px 5px;
     input {
       margin: 15px 15px 0 0;
     }
   }
 
   .address {
+    margin: 10px 5px;
     .p-dropdown {
       width: 180px;
       text-align: center;
@@ -68,6 +75,7 @@ const FilterContainer = styled.div`
   }
 
   .situation {
+    margin: 10px 5px;
     p {
       margin-bottom: 5px;
     }
@@ -82,6 +90,7 @@ const FilterContainer = styled.div`
   }
 
   .buttons {
+    align-self: flex-end;
     margin-top: 15px;
     display: flex;
     justify-content: flex-end;

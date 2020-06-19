@@ -98,6 +98,7 @@ const SaleController = {
         paidValue: sale.netValue,
         paid: true,
         valueToReceive: '0.00',
+        paymentDate: new Date(),
       });
     } else {
       mSale = new SaleFirestore({
@@ -106,7 +107,9 @@ const SaleController = {
       });
     }
 
-    return Firestore.collection(COL_SALES).doc(sale.id).update(mSale);
+    return Firestore.collection(COL_SALES)
+      .doc(sale.id)
+      .update({ ...mSale });
   },
 
   delete(saleId, idVenda) {

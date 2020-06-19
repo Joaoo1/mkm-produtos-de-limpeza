@@ -18,13 +18,15 @@ const ProductController = {
   },
   create(newProduct) {
     const product = new ProductFirestore(newProduct);
-    return Firestore.collection(COL_PRODUCTS).add(product);
+    return Firestore.collection(COL_PRODUCTS).add({ ...product });
   },
 
   update(product) {
     const p = new ProductFirestore(product);
     return StockHistoryController.update(product).then(() => {
-      return Firestore.collection(COL_PRODUCTS).doc(product.id).update(p);
+      return Firestore.collection(COL_PRODUCTS)
+        .doc(product.id)
+        .update({ ...p });
     });
   },
 

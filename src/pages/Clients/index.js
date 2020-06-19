@@ -24,9 +24,12 @@ import ListHeader from '../../components/ListHeader';
 import ConfirmModal from '../../components/ConfirmModal';
 
 import {
+  SALE_CLIENT_NAME,
   SALE_CLIENT_STREET,
   SALE_CLIENT_NEIGHBORHOOD,
   SALE_CLIENT_CITY,
+  SALE_CLIENT_COMPLEMENT,
+  SALE_CLIENT_PHONE,
 } from '../../constants/firestore';
 
 import ClientController from '../../controllers/ClientController';
@@ -218,9 +221,12 @@ export default function Clients() {
         () => {
           fetchClients();
           const toUpdate = {
+            [SALE_CLIENT_NAME]: client.name,
             [SALE_CLIENT_STREET]: client.street,
+            [SALE_CLIENT_COMPLEMENT]: client.complement,
             [SALE_CLIENT_NEIGHBORHOOD]: client.neighborhood,
             [SALE_CLIENT_CITY]: client.city,
+            [SALE_CLIENT_PHONE]: client.phone,
           };
           ClientSalesController.update(client.id, toUpdate);
           successMsg(growl, 'Cliente atualizado com sucesso');

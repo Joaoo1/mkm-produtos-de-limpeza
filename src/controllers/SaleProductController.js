@@ -1,4 +1,5 @@
 import { Firestore } from '../server/firebase';
+import SaleProductFirestore from '../models/SaleProductFirestore';
 import { COL_SALES, SUBCOL_SALE_PRODUCTS } from '../constants/firestore';
 
 const SaleProductController = {
@@ -24,12 +25,12 @@ const SaleProductController = {
   },
 
   create(saleId, products) {
-    const promises = products.map(product => {
-      product.preco = product.price.toFixed(2);
+    const promises = products.map(p => {
+      const product = new SaleProductFirestore(p);
       return Firestore.collection(COL_SALES)
         .doc(saleId)
         .collection(SUBCOL_SALE_PRODUCTS)
-        .add(product);
+        .add({ ...product });
     });
 
     return Promise.all([...promises]);

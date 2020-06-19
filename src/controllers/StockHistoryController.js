@@ -39,7 +39,19 @@ const StockHistoryController = {
     doc.ref.update({ currentStock: currentStock - product.quantity });
   },
   async update(product) {
-    const doc = await Firestore.collection(COL_PRODUCTS).doc(product.id).get();
+    const docRef = Firestore.collection(COL_PRODUCTS).doc(product.id);
+
+    if (!product.manageStock) {
+      return docRef
+        .collection(SUBCOL_STOCK_HISTORY)
+        .get()
+        .then(snapshot => {
+          snapshot.docs.forEach(doc => doc.ref.delete());
+          return Promise.resolve();
+        });
+    }
+
+    const doc = await docRef.get();
     const { currentStock } = doc.data();
 
     if (currentStock !== product.currentStock) {
@@ -59,7 +71,7 @@ const StockHistoryController = {
         .add(stockHistory);
     }
 
-    return new Promise().resolve();
+    return Promise.resolve();
   },
 };
 

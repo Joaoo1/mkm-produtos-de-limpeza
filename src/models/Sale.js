@@ -51,10 +51,10 @@ export default class Sale {
   }
 
   getPaymentSituation() {
-    if (this.pago) {
+    if (this.paid) {
       return 'PAGO';
     }
-    if (parseInt(this.valorPago, 10) > 0) {
+    if (this.paidValue.gt(new Big(0))) {
       return 'PARCIALMENTE PAGO';
     }
     return 'NÃO PAGO';

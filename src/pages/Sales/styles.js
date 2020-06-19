@@ -7,9 +7,13 @@ const FloatingButton = styled.div`
   position: fixed;
   bottom: 40px;
   right: 70px;
-  background: #00bfff;
+  background: #004a62;
   z-index: 9999;
+  transition: 0.3s background;
 
+  :hover {
+    background: gray;
+  }
   svg {
     position: relative;
     left: 30%;

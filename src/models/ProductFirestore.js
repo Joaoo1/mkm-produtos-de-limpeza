@@ -5,7 +5,7 @@ export default class ProductFirestore {
     const { newName, price, currentStock, manageStock } = cloneDeep(product);
     this.nome = newName;
     this.preco = price.toFixed(2);
-    this.currentStock = currentStock;
+    this.currentStock = Number(currentStock);
     this.manageStock = manageStock;
     if (!manageStock) {
       this.currentStock = 0;

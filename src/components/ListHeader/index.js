@@ -168,13 +168,11 @@ export default function ListHeader({
     }
 
     function checkDateRange() {
-      console.log(dateRange);
       if (!dateRange.startDate && !dateRange.endDate) {
         return true;
       }
 
       if (dateRange.startDate) {
-        console.log('startDate');
         filters.push({
           field: SALE_DATE,
           operator: '>=',
@@ -190,7 +188,6 @@ export default function ListHeader({
          */
         const date = new Date(dateRange.endDate);
         date.setDate(date.getDate() + 1);
-        console.log('endDate', date, dateRange);
         filters.push({
           field: SALE_DATE,
           operator: '<',
@@ -248,8 +245,8 @@ export default function ListHeader({
       </ListHeaderContainer>
 
       {showFilter ? (
-        <FilterContainer>
-          <div className="p-formgroup-inline p-justify-around">
+        <FilterContainer className="p-grid p-nogutter p-dir-col">
+          <div className="p-formgroup-inline p-justify-around p-nogutter">
             <div className="p-grid p-dir-col period">
               <p>Informe o período</p>
               <Calendar
@@ -288,7 +285,10 @@ export default function ListHeader({
                 <Checkbox
                   checked={situations.unpaid}
                   onChange={() =>
-                    setSituations({ ...situations, unpaid: !situations.unpaid })
+                    setSituations({
+                      ...situations,
+                      unpaid: !situations.unpaid,
+                    })
                   }
                 />
                 Não Pago
@@ -313,14 +313,14 @@ export default function ListHeader({
                 />
               </div>
             </div>
-            <div className="buttons">
-              <button type="button" onClick={cleanFilter}>
-                Limpar filtro
-              </button>
-              <button type="button" onClick={filter}>
-                Aplicar filtro
-              </button>
-            </div>
+          </div>
+          <div className="buttons">
+            <button type="button" onClick={cleanFilter}>
+              Limpar filtro
+            </button>
+            <button type="button" onClick={filter}>
+              Aplicar filtro
+            </button>
           </div>
         </FilterContainer>
       ) : null}

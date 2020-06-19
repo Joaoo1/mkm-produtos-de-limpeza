@@ -3,18 +3,15 @@ import 'jspdf-autotable';
 
 export default function savePDF(list) {
   const formattedList = list.map(sale => {
-    const street = sale.enderecoCliente || '';
-    const complement = sale.complementoCliente || '';
-    const address = `${street}, ${complement}.`;
     const formattedSale = {
-      date: sale.dataVenda || '',
-      client: sale.nomeCliente || '',
-      total: sale.valorLiquido ? sale.valorLiquido.toFixed(2) : '',
-      totalPaid: sale.valorPago ? sale.valorPago.toFixed(2) : '',
-      totalToReceive: sale.valorAReceber ? sale.valorAReceber.toFixed(2) : '',
-      address,
-      neighborhood: sale.bairroCliente || '',
-      clientPhone: sale.telefone || '',
+      date: sale.saleDate,
+      client: sale.client.name,
+      total: sale.netValue.toFixed(2),
+      totalPaid: sale.paidValue.toFixed(2),
+      totalToReceive: sale.valueToReceive.toFixed(2),
+      address: `${sale.client.street}, ${sale.client.complement}.`,
+      neighborhood: sale.client.neighborhood,
+      clientPhone: sale.client.phone,
     };
 
     return formattedSale;

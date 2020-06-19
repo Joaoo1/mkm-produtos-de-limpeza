@@ -56,7 +56,7 @@ export default function AddSales() {
   const [totalToReceive, setTotalToReceive] = useState(new Big(0));
 
   // Prevent AutoComplete from clearing its values automatically
-  const [product, setProduct] = useState({ nome: '', quantidade: 1 });
+  const [product, setProduct] = useState({ name: '', quantity: 1 });
 
   const [allProducts, setAllProducts] = useState([]);
 
@@ -80,15 +80,15 @@ export default function AddSales() {
   // Setting Autocomplete suggestions
   function suggestsProducts(event) {
     const suggestionResults = allProducts.filter(productSuggestion =>
-      productSuggestion.nome.toLowerCase().startsWith(event.query.toLowerCase())
+      productSuggestion.name.toLowerCase().startsWith(event.query.toLowerCase())
     );
 
-    const results = suggestionResults.map(product => product.nome);
+    const results = suggestionResults.map(product => product.name);
     setProductSuggestions(results);
   }
 
-  function incrementTotal(preco, quantidade) {
-    const newTotal = preco.mul(quantidade).plus(values.grossValue);
+  function incrementTotal(price, quantity) {
+    const newTotal = price.mul(quantity).plus(values.grossValue);
     if (sale.paymentMethod === 'paid') {
       setValues({
         ...values,
@@ -122,25 +122,25 @@ export default function AddSales() {
   function addProductToList(event) {
     // checks if enter was pressed
     if (event.keyCode === 13) {
-      if (product.nome.length === 0) return;
+      if (product.name.length === 0) return;
       // Checking if product exists
       for (let i = 0; i < allProducts.length; i++) {
-        if (allProducts[i].nome === product.nome) {
+        if (allProducts[i].name === product.name) {
           // Checking if the user entered an invalid number
-          if (product.quantidade.length <= 0) {
-            product.quantidade = 1;
+          if (product.quantity.length <= 0) {
+            product.quantity = 1;
           }
 
-          incrementTotal(allProducts[i].preco, product.quantidade);
+          incrementTotal(allProducts[i].price, product.quantity);
           // Checking if product is already added
           const addedProduct = sale.products.filter(
-            p => p.nome === product.nome
+            p => p.name === product.name
           );
 
           if (addedProduct.length > 0) {
             const prodList = sale.products.map(prod => {
-              if (prod.nome === product.nome) {
-                prod.quantidade += product.quantidade;
+              if (prod.name === product.name) {
+                prod.quantity += product.quantity;
               }
               return prod;
             });
@@ -151,11 +151,11 @@ export default function AddSales() {
           else {
             sale.products.push({
               ...allProducts[i],
-              quantidade: product.quantidade,
+              quantity: product.quantity,
             });
           }
 
-          setProduct({ nome: '', quantidade: 1 });
+          setProduct({ name: '', quantity: 1 });
           return;
         }
       }
@@ -198,7 +198,12 @@ export default function AddSales() {
 
   function addSale() {
     if (validateSale()) {
-      SaleController.create({ ...sale, ...values }).then(
+      SaleController.create({
+        ...sale,
+        ...values,
+        netValue: sale.total,
+        paymentDate: sale.paymentMethod === 'paid' ? new Date() : '',
+      }).then(
         saleData => {
           // Sale is created, now add the products in it
           SaleProductController.create(saleData.id, sale.products).then(
@@ -215,24 +220,24 @@ export default function AddSales() {
             }
           });
         },
-        () => errorMsg(growl, 'Ocorreu um erro ao adicionar venda')
+        error => console.log(error)
       );
     }
   }
 
   function handleRemoveQtt() {
-    if (product.quantidade > 1) {
-      setProduct({ ...product, quantidade: product.quantidade - 1 });
+    if (product.quantity > 1) {
+      setProduct({ ...product, quantity: product.quantity - 1 });
     }
   }
 
   function handleAddQtt() {
-    setProduct({ ...product, quantidade: product.quantidade + 1 });
+    setProduct({ ...product, quantity: product.quantity + 1 });
   }
 
   function handleDeleteProduct(index) {
     const deletedProduct = sale.products[index];
-    const subtract = deletedProduct.preco.mul(deletedProduct.quantidade);
+    const subtract = deletedProduct.price.mul(deletedProduct.quantity);
     const newTotal = sale.total.sub(subtract);
     const newGrossValue = values.grossValue.sub(subtract);
     setValues({ ...values, grossValue: newGrossValue });
@@ -344,8 +349,8 @@ export default function AddSales() {
             {filteredClients.map((client, idx) => {
               return (
                 <tr key={client.id} onClick={() => selectClient(idx)}>
-                  <td>{client.nome}</td>
-                  <td>{client.cidade}</td>
+                  <td>{client.name}</td>
+                  <td>{client.city}</td>
                 </tr>
               );
             })}
@@ -368,8 +373,8 @@ export default function AddSales() {
               <AutoComplete
                 id="products"
                 dropdown
-                value={product.nome}
-                onChange={e => setProduct({ ...product, nome: e.target.value })}
+                value={product.name}
+                onChange={e => setProduct({ ...product, name: e.target.value })}
                 suggestions={productsSuggestions}
                 completeMethod={suggestsProducts}
                 placeholder="Digite o nome do produto"
@@ -380,10 +385,10 @@ export default function AddSales() {
               </button>
               <InputText
                 id="quantity"
-                value={product.quantidade}
+                value={product.quantity}
                 keyfilter="int"
                 onChange={e =>
-                  setProduct({ ...product, quantidade: e.target.value })
+                  setProduct({ ...product, quantity: e.target.value })
                 }
               />
               <button
@@ -405,9 +410,9 @@ export default function AddSales() {
               {sale.products.map((product, idx) => {
                 return (
                   <tr key={product.id}>
-                    <td>{`${product.quantidade}x`}</td>
-                    <td>{product.nome}</td>
-                    <td>{`R$${product.preco.toFixed(2)}`}</td>
+                    <td>{`${product.quantity}x`}</td>
+                    <td>{product.name}</td>
+                    <td>{`R$${product.price.toFixed(2)}`}</td>
                     <td>
                       <FiXCircle
                         size={22}
@@ -427,7 +432,7 @@ export default function AddSales() {
             <div className="p-grid p-nogutter">
               <InputText
                 id="clients"
-                value={sale.client.nome}
+                value={sale.client.name}
                 placeholder="Selecione um cliente"
                 disabled
               />

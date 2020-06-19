@@ -65,14 +65,11 @@ export default function Products() {
     );
   }
 
-  function setPrice(event) {
-    if (
-      event.target.value.length === 0 ||
-      Number.isNaN(Number(event.target.value))
-    ) {
-      setProduct({ ...product, price: event.target.value.toString() });
+  function setPrice() {
+    if (product.price === 0 || Number.isNaN(Number(product.price))) {
+      setProduct({ ...product, price: new Big('0.00') });
     } else {
-      setProduct({ ...product, price: new Big(event.target.value) });
+      setProduct({ ...product, price: new Big(Number(product.price)) });
     }
   }
 
@@ -82,7 +79,7 @@ export default function Products() {
   }
 
   function openAddModal() {
-    setProduct(new Product());
+    setProduct(new Product({}));
     setModalTitle('Cadastrar novo Produto');
     setModalOpen({ ...modalOpen, addEditModal: true });
   }
@@ -94,7 +91,7 @@ export default function Products() {
   }
 
   function toggleDeleteModal(p, index) {
-    setProduct(new Product());
+    setProduct(new Product({}));
     if (p) {
       setProduct({ ...p, index });
       setModalOpen({ ...modalOpen, deleteModal: true });
@@ -168,10 +165,13 @@ export default function Products() {
           fetchProducts();
           successMsg(growl, `${product.newName} atualizado com sucesso`);
         },
-        () => errorMsg(growl, `Ocorreu um erro ao atualizar produto`)
+        error => {
+          errorMsg(growl, `Ocorreu um erro ao atualizar produto`);
+          console.log(error);
+        }
       );
       closeModal();
-      setProduct(new Product());
+      setProduct(new Product({}));
     } else {
       ProductController.create(product).then(
         () => {
@@ -181,7 +181,7 @@ export default function Products() {
         () => errorMsg(growl, `Ocorreu um erro ao adicionar produto`)
       );
       closeModal();
-      setProduct(new Product());
+      setProduct(new Product({}));
     }
   }
 
@@ -194,7 +194,7 @@ export default function Products() {
       () => errorMsg(growl, `Ocorreu um erro ao excluir produto`)
     );
     setModalOpen({ ...modalOpen, deleteModal: false });
-    setProduct(new Product());
+    setProduct(new Product({}));
   }
 
   function handleStockHistoryItem(stockHistory) {
@@ -329,7 +329,12 @@ export default function Products() {
           onChange={e => setProduct({ ...product, newName: e.target.value })}
         />
         <p>Preço</p>
-        <input type="number" value={product.price} onChange={setPrice} />
+        <input
+          type="number"
+          value={product.price}
+          onChange={e => setProduct({ ...product, price: e.target.value })}
+          onBlur={setPrice}
+        />
         <CheckboxContainer>
           <Checkbox
             checked={product.manageStock}
