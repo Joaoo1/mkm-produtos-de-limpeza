@@ -33,6 +33,8 @@ Clone este repositório para seu computador e digite `yarn` ou `npm install` par
   Agora na página inicial do seu projeto, vá em configurações do projeto (que se encontra na engrenagem no canto esquerdo), selecione o app que você registrou anteriormente e em *Firebase SDK Snippet*, selecione a opção *Configuração* e copie as informações de configuração do seu projeto. 
 
   Agora vá na pasta raiz da aplicação onde se encontra o arquivo *.env.template* e remova o *.template* do nome ficando com o nome *.env*, e preencha esse arquivo com as informações de configuração do projeto que foi pego no passo anterior. 
+  
+  É preciso também fazer o `deploy` das funções que se encontram no repositório [mkm-clouds-function](https://github.com/Joaoo1/mkm-cloud-functions) para o serviço de Cloud functions do firebase. [Tutorial](https://github.com/Joaoo1/mkm-cloud-functions)
 
   Agora com tudo configurado, execute o comando `yarn start` ou `npm start` para executar a aplicação.
   
@@ -43,3 +45,5 @@ Clone este repositório para seu computador e digite `yarn` ou `npm install` par
   ![Alt text](/demo/Clients.png "Clientes")
   ![Alt text](/demo/Products.png "Produtos")
   ![Alt text](/demo/StockHistory.png "Histórico de estoque")
+
+*Obs: Esta aplicação foi criada em cima de uma banco de dados já existente, por isso as informações como campos e coleções do Firestore estão a grande maioria em português.*
