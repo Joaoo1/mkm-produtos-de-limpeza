@@ -1,68 +1,45 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# MKM Produtos de Limpeza
 
-## Available Scripts
+Esse é um aplicativo desenvolvido em JavaScript criado especificamente para gerenciar uma pequena empresa de produtos de limpeza, porém é possivel usar em empresas de outro ramo.
 
-In the project directory, you can run:
+![Alt text](/demo/Dashboard.png "Página inicial")
 
-### `yarn start`
+## Table of contents
+* [Features](#features)
+* [Tecnologias](#tecnologias)
+* [Configuração](#configuração)
+* [Demo](#demo)
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Features
+* Realize o controle de suas vendas de forma fácil.
+* Gere um relatório das suas vendas em um arquivo PDF.
+* Acompanhe a quantidade de vendas realizadas nos últimos meses.
+* Busque de forma facilitada quais as vendas feitas para determinado cliente.
+* Faça o controle de estoque dos seus produtos, com histórico de baixas.
+	
+## Tecnologias
+Nesse projeto foram usadas tecnologias atuais, seguindo o atual padrão do mercado:
+* [**ReactJS**](https://pt-br.reactjs.org/) - Uma biblioteca front-end poderosa, atual e enxuta, usada para desenvolver a UI do projeto
+* [**styled-components**](https://styled-components.com/) - Ferramenta usada para criar componentes estilizados, juntando *Javascript* com *CSS*, mantendo a estilização da aplicação muito mais concisa e sólida.
+* [**Firebase**](https://firebase.google.com) - Plataforma disponibilizada pelo Google onde é fornecido um Back-end completo com uma grande variedade de serviços.
+* [**PrimeReact**](http://primefaces.org/primereact/) - Biblioteca de componentes para React.
+* [**big.js**](https://mikemcl.github.io/big.js/) - biblioteca de fácil utilização usada para fazer os cálculos matemáticos de forma precisa.
+	
+## Configuração
+Clone este repositório para seu computador e digite `yarn` ou `npm install` para instalar as dependências necessárias para a aplicação.
+  P
+  Para executar essa aplicação, você precisa criar um projeto no firebase(caso você não saiba fazer isso, siga as etapas 1 e 2 desse [tutorial](https://firebase.google.com/docs/web/setup#aplicativos-node.js).
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+  Agora na página inicial do seu projeto, vá em configurações do projeto (que se encontra na engrenagem no canto esquerdo), selecione o app que você registrou anteriormente e em *Firebase SDK Snippet*, selecione a opção *Configuração* e copie as informações de configuração do seu projeto. 
 
-### `yarn test`
+  Agora vá na pasta raiz da aplicação onde se encontra o arquivo *.env.template* e remova o *.template* do nome ficando com o nome *.env*, e preencha esse arquivo com as informações de configuração do projeto que foi pego no passo anterior. 
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `yarn build`
-
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `yarn eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
-
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `yarn build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+  Agora com tudo configurado, execute o comando `yarn start` ou `npm start` para executar a aplicação.
+  
+  ## Demo
+  
+  ![Alt text](/demo/Dashboard.png "Página inicial")
+  ![Alt text](/demo/Sales.png "Vendas")
+  ![Alt text](/demo/Clients.png "Clientes")
+  ![Alt text](/demo/Products.png "Produtos")
+  ![Alt text](/demo/StockHistory.png "Histórico de estoque")
