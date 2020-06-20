@@ -42,6 +42,7 @@ export const Menu = styled.aside`
   height: 100%;
   background-color: #feffff;
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
   /* Class for NavLink change color when menu button is selected */
   .active {
     color: #fff;
@@ -104,7 +105,7 @@ export const MenuFooter = styled.footer`
   p,
   small {
     margin: 10px 4px 0 10px;
-    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   small {

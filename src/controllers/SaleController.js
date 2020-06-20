@@ -47,13 +47,11 @@ const SaleController = {
             const saleWithProducts = new Sale(sale);
             saleWithProducts.products = products;
             sales.push(saleWithProducts);
+
             return sales;
           });
         })
-      ).then(
-        sales => (sales.length > 0 ? sales[0] : []),
-        () => []
-      );
+      ).then(sales => (sales.length > 0 ? sales[0] : []));
     });
   },
 

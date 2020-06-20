@@ -33,8 +33,14 @@ export default class Sale {
     this.paid = pago;
     this.grossValue = new Big(valorBruto);
     this.netValue = new Big(valorLiquido);
-    this.paidValue = new Big(valorPago);
-    this.valueToReceive = new Big(valorAReceber);
+    this.paidValue = (function () {
+      if (valorPago) return new Big(valorPago);
+      if (pago) return new Big(valorLiquido);
+      return new Big(0);
+    })();
+    this.valueToReceive = valorAReceber
+      ? new Big(valorAReceber)
+      : new Big(valorLiquido).sub(this.paidValue);
     this.discount = new Big(desconto);
     this.situation = this.getPaymentSituation();
     if (seller) this.seller = seller;

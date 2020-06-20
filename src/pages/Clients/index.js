@@ -282,6 +282,7 @@ export default function Clients() {
     s.netValue = s.netValue ? s.netValue.toFixed(2) : '0.00';
     s.paidValue = s.paidValue ? s.paidValue.toFixed(2) : '0.00';
     s.discount = s.discount ? s.discount.toFixed(2) : '0.00';
+    s.valueToReceive = s.valueToReceive ? s.valueToReceive.toFixed(2) : '0.00';
     history.push({ pathname: '/sales/edit', state: s });
   }
 

@@ -14,8 +14,7 @@ const BaseModal = styled(ReactModal)`
   border-radius: 5px;
   padding: 15px 20px;
   font-weight: normal;
-  overflow: visible;
-
+  overflow-y: scroll;
   input {
     margin-top: 3px;
   }
@@ -50,6 +49,7 @@ const ProductModal = styled(BaseModal)`
 
 const ClientModal = styled(BaseModal)`
   height: 540px;
+  overflow: visible;
 
   .p-autocomplete-panel {
     z-index: 9999 !important;
@@ -94,7 +94,7 @@ const ModalButtonsContainer = styled.div`
   }
 `;
 
-const SelectClientModal = styled(BaseModal)`
+const BaseSelectModal = styled(BaseModal)`
   width: 520px;
   table {
     border: 1px solid #d6d6d6;
@@ -146,17 +146,25 @@ const SelectClientModal = styled(BaseModal)`
     td:first-child {
       padding: 0 15px;
     }
-
-    td:last-child {
-      svg {
-        margin: 5px 10px;
-        float: right;
-      }
-    }
   }
 
   .p-inputtext {
     width: 100%;
+  }
+`;
+
+const SelectClientModal = styled(BaseSelectModal)`
+  td:last-child {
+    padding-right: 10px;
+  }
+`;
+
+const SelectAddressModal = styled(BaseSelectModal)`
+  td:last-child {
+    svg {
+      margin: 5px 10px;
+      float: right;
+    }
   }
 `;
 
@@ -178,6 +186,7 @@ export {
   ModalButtonsContainer,
   SaleModal,
   SelectClientModal,
+  SelectAddressModal,
   PurchasesMadeModal,
   EditAddressModal,
 };

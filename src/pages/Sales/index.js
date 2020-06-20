@@ -61,21 +61,13 @@ export default function Sales() {
   }
 
   function handleHistory(pathname, state) {
-    state.grossValue = state.grossValue
-      ? (state.grossValue = state.grossValue.toFixed(2))
-      : '0.00';
-    state.netValue = state.netValue
-      ? (state.netValue = state.netValue.toFixed(2))
-      : '0.00';
-    state.paidValue = state.paidValue
-      ? (state.paidValue = state.paidValue.toFixed(2))
-      : '0.00';
+    state.grossValue = state.grossValue ? state.grossValue.toFixed(2) : '0.00';
+    state.netValue = state.netValue ? state.netValue.toFixed(2) : '0.00';
+    state.paidValue = state.paidValue ? state.paidValue.toFixed(2) : '0.00';
     state.valueToReceive = state.valueToReceive
-      ? (state.valueToReceive = state.valueToReceive.toFixed(2))
+      ? state.valueToReceive.toFixed(2)
       : '0.00';
-    state.discount = state.discount
-      ? (state.discount = state.discount.toFixed(2))
-      : '0.00';
+    state.discount = state.discount ? state.discount.toFixed(2) : '0.00';
     history.push({ pathname, state });
   }
 

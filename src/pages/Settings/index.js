@@ -5,7 +5,7 @@ import { Growl } from 'primereact/growl';
 import { errorMsg, successMsg } from '../../helpers/Growl';
 
 import {
-  SelectClientModal as SelectAddressModal,
+  SelectAddressModal,
   ModalButtonsContainer,
   EditAddressModal,
 } from '../../styles/modal';

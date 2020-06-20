@@ -25,6 +25,7 @@ const ClientSalesController = {
         });
     }
     return Firestore.collection(COL_SALES)
+      .orderBy('dataVenda', 'desc')
       .where('idCliente', '==', clientId)
       .get()
       .then(salesData => {
