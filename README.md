@@ -4,7 +4,7 @@ Esse é um aplicativo desenvolvido em JavaScript criado especificamente para ger
 
 ![Alt text](/demo/Dashboard.png "Página inicial")
 
-## Table of contents
+## Conteúdo
 * [Features](#features)
 * [Tecnologias](#tecnologias)
 * [Configuração](#configuração)
