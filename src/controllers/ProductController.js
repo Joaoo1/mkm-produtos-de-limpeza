@@ -16,6 +16,7 @@ const ProductController = {
 
     return products;
   },
+
   create(newProduct) {
     const product = new ProductFirestore(newProduct);
     return Firestore.collection(COL_PRODUCTS).add({ ...product });

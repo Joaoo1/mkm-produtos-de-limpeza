@@ -1,6 +1,7 @@
 import { Firestore } from '../server/firebase';
 import Sale from '../models/Sale';
 import SaleFirestore from '../models/SaleFirestore';
+import SaleProduct from '../models/SaleProduct';
 import {
   COL_SALES,
   SUBCOL_SALE_PRODUCTS,
@@ -8,7 +9,7 @@ import {
 } from '../constants/firestore';
 
 const SaleController = {
-  index(limit, filters) {
+  async index(limit, filters) {
     let query = Firestore.collection(COL_SALES).orderBy('dataVenda', 'desc');
 
     if (limit && !Number.isNaN(limit)) query = query.limit(limit);
@@ -19,39 +20,14 @@ const SaleController = {
       });
     }
 
-    function getProductsBySaleId(saleId) {
-      const products = [];
-      return Firestore.collection(COL_SALES)
-        .doc(saleId)
-        .collection(SUBCOL_SALE_PRODUCTS)
-        .get()
-        .then(productsData => {
-          productsData.forEach(doc => {
-            const product = doc.data();
-            product.id = doc.id;
-            products.push(product);
-          });
+    const salesData = await query.get();
 
-          return products;
-        });
-    }
+    return salesData.docs.map(saleData => {
+      const products = saleData
+        .get('products')
+        .map(product => new SaleProduct(product));
 
-    return query.get().then(salesData => {
-      const sales = [];
-      return Promise.all(
-        salesData.docs.map(doc => {
-          const sale = doc.data();
-          sale.id = doc.id;
-          const productsPromise = getProductsBySaleId(sale.id);
-          return productsPromise.then(products => {
-            const saleWithProducts = new Sale(sale);
-            saleWithProducts.products = products;
-            sales.push(saleWithProducts);
-
-            return sales;
-          });
-        })
-      ).then(sales => (sales.length > 0 ? sales[0] : []));
+      return new Sale({ ...saleData.data(), id: saleData.id, products });
     });
   },
 
@@ -74,8 +50,9 @@ const SaleController = {
               saleId: i,
               paid: sale.paymentMethod === 'paid',
             });
-
+            // Register the ID not to be used again
             Firestore.collection(COL_SALE_IDS).add({ venda: i });
+
             return Firestore.collection(COL_SALES).add({
               ...mSale,
               dataVenda: new Date(),

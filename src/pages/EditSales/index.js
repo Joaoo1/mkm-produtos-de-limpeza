@@ -26,8 +26,8 @@ export default function EditSales() {
 
   // Prevent AutoComplete from clearing its values automatically
   const [product, setProduct] = useState({
-    nome: '',
-    quantidade: 1,
+    name: '',
+    quantity: 1,
   });
 
   const [allProducts, setAllProducts] = useState([]);
@@ -90,15 +90,9 @@ export default function EditSales() {
     const discount = new Big(state.discount);
     state.hasDiscount = discount.gt(new Big('0.00'));
     setSale({
-      /* id: state.id,
-      saleId: state.saleId,
-      saleDate: state.saleDate,
-      paymentMethod: state.paymentMethod,
-      client: state.client,
-      hasDiscount: state.hasDiscount, */
       ...state,
       products: state.products.map(p => {
-        return { ...p, preco: new Big(p.preco) };
+        return { ...p, price: new Big(p.price) };
       }),
       total: new Big(state.netValue),
     });
@@ -108,15 +102,15 @@ export default function EditSales() {
   // Setting Autocomplete suggestions
   function suggestsProducts(event) {
     const suggestionResults = allProducts.filter(productSuggestion =>
-      productSuggestion.nome.toLowerCase().startsWith(event.query.toLowerCase())
+      productSuggestion.name.toLowerCase().startsWith(event.query.toLowerCase())
     );
 
-    const results = suggestionResults.map(product => product.nome);
+    const results = suggestionResults.map(product => product.name);
     setProductSuggestions(results);
   }
 
-  function incrementTotal(preco, quantidade) {
-    const newTotal = preco.mul(quantidade).plus(values.grossValue);
+  function incrementTotal(price, quantity) {
+    const newTotal = price.mul(quantity).plus(values.grossValue);
     if (sale.paymentMethod === 'paid') {
       setValues({
         ...values,
@@ -132,17 +126,17 @@ export default function EditSales() {
     // checks if enter was pressed
     if (event.keyCode === 13) {
       for (let i = 0; i < allProducts.length; i++) {
-        if (allProducts[i].nome.includes(event.target.value)) {
+        if (allProducts[i].name.includes(event.target.value)) {
           // checking if the user entered an invalid number
-          if (product.quantidade.length === 0 || product.quantidade < 1) {
-            product.quantidade = 1;
+          if (product.quantity.length === 0 || product.quantity < 1) {
+            product.quantity = 1;
           }
-          incrementTotal(allProducts[i].preco, product.quantidade);
+          incrementTotal(allProducts[i].price, product.quantity);
           sale.products.push({
             ...allProducts[i],
-            quantidade: product.quantidade,
+            quantity: product.quantity,
           });
-          setProduct({ nome: '', quantidade: 1 });
+          setProduct({ name: '', quantity: 1 });
           return;
         }
       }
@@ -192,13 +186,13 @@ export default function EditSales() {
   }
 
   function handleRemoveQtt() {
-    if (product.quantidade > 1) {
-      setProduct({ ...product, quantidade: product.quantidade - 1 });
+    if (product.quantity > 1) {
+      setProduct({ ...product, quantity: product.quantity - 1 });
     }
   }
 
   function handleAddQtt() {
-    setProduct({ ...product, quantidade: product.quantidade + 1 });
+    setProduct({ ...product, quantity: product.quantity + 1 });
   }
 
   function toggleDiscount(event) {
@@ -266,8 +260,8 @@ export default function EditSales() {
               <AutoComplete
                 id="products"
                 dropdown
-                value={product.nome}
-                onChange={e => setProduct({ ...product, nome: e.target.value })}
+                value={product.name}
+                onChange={e => setProduct({ ...product, name: e.target.value })}
                 suggestions={productsSuggestions}
                 completeMethod={suggestsProducts}
                 placeholder="Digite o nome do produto"
@@ -278,10 +272,10 @@ export default function EditSales() {
               </button>
               <InputText
                 id="quantity"
-                value={product.quantidade}
+                value={product.quantity}
                 keyfilter="int"
                 onChange={e =>
-                  setProduct({ ...product, quantidade: e.target.value })
+                  setProduct({ ...product, quantity: e.target.value })
                 }
               />
               <button
@@ -302,10 +296,10 @@ export default function EditSales() {
             <tbody>
               {sale.products.map(product => {
                 return (
-                  <tr key={product.id}>
-                    <td>{`${product.quantidade}x`}</td>
-                    <td>{product.nome}</td>
-                    <td>{`R$${product.preco.toFixed(2)}`}</td>
+                  <tr key={sale.id + product.id}>
+                    <td>{`${product.quantity}x`}</td>
+                    <td>{product.name}</td>
+                    <td>{`R$${product.price.toFixed(2)}`}</td>
                   </tr>
                 );
               })}

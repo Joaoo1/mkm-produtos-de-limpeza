@@ -1,4 +1,5 @@
 import cloneDeep from 'lodash.clonedeep';
+import SaleProduct from './SaleProduct';
 import { convertStringToTimestamp } from '../helpers/FormatDate';
 
 export default class SaleFirestore {
@@ -15,6 +16,7 @@ export default class SaleFirestore {
       paidValue,
       discount,
       client,
+      products,
     } = cloneDeep(sale);
     this.dataPagamento = paymentDate
       ? convertStringToTimestamp(paymentDate)
@@ -36,5 +38,6 @@ export default class SaleFirestore {
     this.bairroCliente = client.neighborhood;
     this.cidadeCliente = client.city;
     this.telefone = client.phone;
+    this.products = products.map(p => new SaleProduct(p));
   }
 }

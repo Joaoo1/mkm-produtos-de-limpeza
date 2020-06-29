@@ -22,6 +22,7 @@ export default class Sale {
     cidadeCliente,
     enderecoCliente,
     telefone,
+    products,
   }) {
     if (id) this.id = id;
     this.paymentDate = dataPagamento
@@ -54,6 +55,7 @@ export default class Sale {
       complement: complementoCliente || '',
       phone: telefone || '',
     };
+    this.products = products;
   }
 
   getPaymentSituation() {
