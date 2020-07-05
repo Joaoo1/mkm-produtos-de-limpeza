@@ -13,7 +13,7 @@ import {
   DropdownItem,
 } from '../../styles/table';
 
-import FloatingButton from './styles';
+import { FloatingButton, PaymentSituation } from './styles';
 
 import ListHeader from '../../components/ListHeader';
 import ConfirmModal from '../../components/ConfirmModal';
@@ -143,7 +143,9 @@ export default function Sales() {
                 </td>
                 <td>{sale.saleDate}</td>
                 <td>{sale.client.name}</td>
-                <td>{sale.situation}</td>
+                <PaymentSituation situation={sale.situation}>
+                  {sale.situation}
+                </PaymentSituation>
                 <td className="products">
                   {sale.products &&
                     sale.products.map(product => (
