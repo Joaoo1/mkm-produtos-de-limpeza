@@ -283,6 +283,9 @@ export default function Clients() {
     s.paidValue = s.paidValue ? s.paidValue.toFixed(2) : '0.00';
     s.discount = s.discount ? s.discount.toFixed(2) : '0.00';
     s.valueToReceive = s.valueToReceive ? s.valueToReceive.toFixed(2) : '0.00';
+    s.products = s.products.map(productSale => {
+      return { ...productSale, price: productSale.price.toFixed(2) };
+    });
     history.push({ pathname: '/sales/edit', state: s });
   }
 
@@ -461,8 +464,8 @@ export default function Clients() {
                         {sale.products &&
                           sale.products.map(product => {
                             return (
-                              <p key={product.id}>
-                                {`${product.quantidade}x ${product.nome}`}
+                              <p key={sale.id + product.name}>
+                                {`${product.quantity}x ${product.name}`}
                               </p>
                             );
                           })}

@@ -68,6 +68,9 @@ export default function Sales() {
       ? state.valueToReceive.toFixed(2)
       : '0.00';
     state.discount = state.discount ? state.discount.toFixed(2) : '0.00';
+    state.products = state.products.map(p => {
+      return { ...p, price: p.price.toFixed(2) };
+    });
     history.push({ pathname, state });
   }
 
@@ -149,8 +152,8 @@ export default function Sales() {
                 <td className="products">
                   {sale.products &&
                     sale.products.map(product => (
-                      <p key={product.id}>
-                        {`${product.quantidade}x ${product.nome}`}
+                      <p key={sale.id + product.name}>
+                        {`${product.quantity}x ${product.name}`}
                       </p>
                     ))}
                 </td>

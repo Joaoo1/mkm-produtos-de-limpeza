@@ -23,10 +23,8 @@ import { SelectClientModal } from '../../styles/modal';
 import ClientController from '../../controllers/ClientController';
 import ProductController from '../../controllers/ProductController';
 import SaleController from '../../controllers/SaleController';
-import SaleProductController from '../../controllers/SaleProductController';
 
 import { successMsg, errorMsg } from '../../helpers/Growl';
-import StockHistoryController from '../../controllers/StockHistoryController';
 
 export default function AddSales() {
   const growl = useRef(null);
@@ -204,23 +202,11 @@ export default function AddSales() {
         netValue: sale.total,
         paymentDate: sale.paymentMethod === 'paid' ? new Date() : '',
       }).then(
-        saleData => {
-          // Sale is created, now add the products in it
-          SaleProductController.create(saleData.id, sale.products).then(
-            () => {
-              successMsg(growl, 'Venda adicionada com sucesso');
-              resetSale();
-            },
-            () => errorMsg(growl, 'Ocorre um erro ao adicionar os produtos')
-          );
-          // Register stock history too
-          sale.products.forEach(p => {
-            if (p.manageStock) {
-              StockHistoryController.create(p, sale.client.name);
-            }
-          });
+        () => {
+          successMsg(growl, 'Venda adicionada com sucesso');
+          resetSale();
         },
-        error => console.log(error)
+        error => errorMsg(growl, `${error}`)
       );
     }
   }

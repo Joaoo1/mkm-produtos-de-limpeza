@@ -1,4 +1,5 @@
 import cloneDeep from 'lodash.clonedeep';
+import SaleProductFirestore from './SaleProductFirestore';
 import { convertStringToTimestamp } from '../helpers/FormatDate';
 
 export default class SaleFirestore {
@@ -15,10 +16,11 @@ export default class SaleFirestore {
       paidValue,
       discount,
       client,
+      products,
     } = cloneDeep(sale);
     this.dataPagamento = paymentDate
       ? convertStringToTimestamp(paymentDate)
-      : '';
+      : null;
     this.dataVenda = convertStringToTimestamp(saleDate);
     this.idVenda = saleId;
     this.pago = paid;
@@ -36,5 +38,9 @@ export default class SaleFirestore {
     this.bairroCliente = client.neighborhood;
     this.cidadeCliente = client.city;
     this.telefone = client.phone;
+    // Need to use spread operator because firestore don't accept custom objects
+    this.products = products.map(p => {
+      return { ...new SaleProductFirestore(p) };
+    });
   }
 }

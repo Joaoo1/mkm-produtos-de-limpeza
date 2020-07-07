@@ -10,7 +10,6 @@ const FloatingButton = styled.div`
   background: #004a62;
   z-index: 9999;
   transition: 0.3s background;
-
   :hover {
     background: gray;
   }
