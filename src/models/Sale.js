@@ -1,4 +1,5 @@
 import Big from 'big.js';
+import SaleProduct from './SaleProduct';
 import { convertTimeStampToString } from '../helpers/FormatDate';
 
 export default class Sale {
@@ -55,7 +56,7 @@ export default class Sale {
       complement: complementoCliente || '',
       phone: telefone || '',
     };
-    this.products = products;
+    this.products = products.map(product => new SaleProduct(product));
   }
 
   getPaymentSituation() {

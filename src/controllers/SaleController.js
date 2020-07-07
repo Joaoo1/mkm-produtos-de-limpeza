@@ -1,7 +1,6 @@
 import { Firestore } from '../server/firebase';
 import Sale from '../models/Sale';
 import SaleFirestore from '../models/SaleFirestore';
-import SaleProduct from '../models/SaleProduct';
 import {
   COL_SALES,
   SUBCOL_SALE_PRODUCTS,
@@ -23,53 +22,45 @@ const SaleController = {
     const salesData = await query.get();
 
     return salesData.docs.map(saleData => {
-      const products = saleData
-        .get('products')
-        .map(product => new SaleProduct(product));
-
-      return new Sale({ ...saleData.data(), id: saleData.id, products });
+      return new Sale({ ...saleData.data(), id: saleData.id });
     });
   },
 
-  create(sale) {
+  async create(sale) {
     // Generate a ID for sale that has not been used
-    return Firestore.collection(COL_SALE_IDS)
-      .get()
-      .then(data => {
-        // Get all IDS that has already been used
-        const usedIds = data.docs.map(snapshot => {
-          const id = snapshot.data();
-          return id.venda;
+    const data = await Firestore.collection(COL_SALE_IDS).get();
+    // Get all IDS that has already been used
+    const usedIds = data.docs.map(snapshot => {
+      const id = snapshot.data();
+      return id.venda;
+    });
+    // The generate ID must to be between 1k and 10k
+    for (let i = 1000; i < 10000; i++) {
+      if (!usedIds.includes(i)) {
+        // A valid ID was found, now format sale and create it
+        const mSale = new SaleFirestore({
+          ...sale,
+          saleId: i,
+          paid: sale.paymentMethod === 'paid',
         });
-        // The generate ID must to be between 1k and 10k
-        for (let i = 1000; i < 10000; i++) {
-          if (!usedIds.includes(i)) {
-            // A valid ID was found, now format sale and create it
-            const mSale = new SaleFirestore({
-              ...sale,
-              saleId: i,
-              paid: sale.paymentMethod === 'paid',
-            });
-            // Register the ID not to be used again
-            Firestore.collection(COL_SALE_IDS).add({ venda: i });
-
-            return Firestore.collection(COL_SALES).add({
-              ...mSale,
-              dataVenda: new Date(),
-            });
-          }
-        }
-
-        return Promise.reject();
-      });
+        // Register the ID not to be used again
+        Firestore.collection(COL_SALE_IDS).add({ venda: i });
+        return Firestore.collection(COL_SALES).add({
+          ...mSale,
+          dataVenda: new Date(),
+        });
+      }
+    }
+    return Promise.reject();
   },
 
-  async update(sale, isFinishSale) {
+  update(sale, isFinishSale) {
     let mSale;
 
     if (isFinishSale) {
       mSale = new SaleFirestore({
         ...sale,
+        parentId: sale.parentId,
         paidValue: sale.netValue,
         paid: true,
         valueToReceive: '0.00',

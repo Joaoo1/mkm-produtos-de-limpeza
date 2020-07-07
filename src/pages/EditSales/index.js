@@ -266,6 +266,7 @@ export default function EditSales() {
                 completeMethod={suggestsProducts}
                 placeholder="Digite o nome do produto"
                 onKeyUp={addProductToList}
+                disabled
               />
               <button type="button" className="quantity" onClick={handleAddQtt}>
                 <FiPlus color="white" size={24} />
