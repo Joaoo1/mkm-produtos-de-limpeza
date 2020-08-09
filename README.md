@@ -1,6 +1,16 @@
-# MKM Produtos de Limpeza
+<h1 align="center">MKM Produtos de Limpeza</h1>
+<h2 align="center">	
+   <a href="https://www.linkedin.com/in/jo%C3%A3oo-vitor" target="blank">
+      <img alt="João Vitor" src="https://img.shields.io/badge/-João Vitor-06C1FF?style=flat&logo=Linkedin&logoColor=white" />
+   </a>
 
-Esse é um aplicativo desenvolvido em JavaScript criado especificamente para gerenciar uma pequena empresa de produtos de limpeza, porém é possivel usar em empresas de outro ramo.
+  <a href="https://github.com/Joaoo1/mkm-produtos-de-limpeza/commits/master">
+    <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/Joaoo1/mkm-produtos-de-limpeza?color=06C1FF">
+  </a> 
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-06C1FF">
+</h1>
+
+Esse é um aplicativo desenvolvido em JavaScript com React criado especificamente para gerenciar uma pequena empresa de produtos de limpeza, porém é possivel usar em empresas de outro ramo.
 
 ![Alt text](/demo/Dashboard.png "Página inicial")
 
