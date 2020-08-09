@@ -20,7 +20,19 @@ export default function savePDF(list) {
   const values = formattedList.map(sale =>
     Object.entries(sale).map(keyValue => keyValue[1])
   );
-  // console.log(values);
+
+  // Need to order list by client name in alphabetical order
+  const ordenedListByClientName = values.sort((a, b) => {
+    if (a[1] > b[1]) {
+      return 1;
+    }
+    if (a[1] < b[1]) {
+      return -1;
+    }
+    // a is equals to b
+    return 0;
+  });
+
   const doc = new JsPDF();
   doc.autoTable({
     head: [
@@ -35,7 +47,7 @@ export default function savePDF(list) {
         'Telefone',
       ],
     ],
-    body: [...values],
+    body: [...ordenedListByClientName],
   });
   doc.save('Relatório de vendas');
 }
