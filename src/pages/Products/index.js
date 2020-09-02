@@ -1,17 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Big from 'big.js';
 import { Growl } from 'primereact/growl';
+import { Calendar } from 'primereact/calendar';
 import { Checkbox } from 'primereact/checkbox';
 import {
   FiMoreVertical,
   FiX,
   FiChevronDown,
   FiChevronUp,
+  FiPrinter,
 } from 'react-icons/fi';
 
 // Styled Components
-import { ProductModal, ModalButtonsContainer } from '../../styles/modal';
-import { PrimaryButton, SecondaryButton } from '../../styles/button';
+import {
+  ProductModal,
+  ModalButtonsContainer,
+  ReportProductsModal,
+} from '../../styles/modal';
+import {
+  PrimaryButton,
+  SecondaryButton,
+  FloatingButton,
+} from '../../styles/button';
 import { CheckboxContainer, StockHistoryModal } from './styles';
 import {
   List as ProductList,
@@ -26,11 +36,60 @@ import ConfirmModal from '../../components/ConfirmModal';
 
 // Database Controller imports
 import ProductController from '../../controllers/ProductController';
+import ProductsSoldController from '../../controllers/ProductsSoldController';
 import StockHistoryController from '../../controllers/StockHistoryController';
 
 import Product from '../../models/Product';
 
 import { successMsg, errorMsg } from '../../helpers/Growl';
+import { savePDF, REPORT_PRODUCTS } from '../../helpers/SavePDF';
+
+const ptbr = {
+  firstDayOfWeek: 1,
+  dayNames: [
+    'domingo',
+    'segunda',
+    'terça',
+    'quarta',
+    'quinta',
+    'sexta',
+    'sábado',
+  ],
+  dayNamesShort: ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'],
+  dayNamesMin: ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'],
+  monthNames: [
+    'janeiro',
+    'fevereiro',
+    'março',
+    'abril',
+    'maio',
+    'junho',
+    'julho',
+    'agosto',
+    'setembro',
+    'outubro',
+    'novembro',
+    'dezembro',
+  ],
+  monthNamesShort: [
+    'jan',
+    'fev',
+    'mar',
+    'abr',
+    'mai',
+    'jun',
+    'jul',
+    'ago',
+    'set',
+    'out',
+    'nov',
+    'dez',
+  ],
+  today: 'Hoje',
+  clear: 'Limpar',
+  dateFormat: 'dd/mm/yy',
+  weekHeader: 'Sm',
+};
 
 export default function Products() {
   const growl = useRef(null);
@@ -41,11 +100,14 @@ export default function Products() {
     addEditModal: false,
     deleteModal: false,
     stockHistoryModal: false,
+    reportProductsModal: false,
   });
   const [stockHistories, setStockHistories] = useState([]);
   const [product, setProduct] = useState({});
   const [productList, setProductList] = useState([]);
   const [filteredList, setFilteredList] = useState([]);
+
+  const [reportProductsDateRange, setReportProductsDateRange] = useState({});
 
   async function fetchProducts() {
     const products = await ProductController.index();
@@ -98,6 +160,13 @@ export default function Products() {
     } else {
       setModalOpen({ ...modalOpen, deleteModal: false });
     }
+  }
+
+  function toggleReportProductsModal() {
+    setModalOpen({
+      ...modalOpen,
+      reportProductsModal: !modalOpen.reportProductsModal,
+    });
   }
 
   async function toggleStockHistoryModal(p) {
@@ -197,6 +266,13 @@ export default function Products() {
     setProduct(new Product({}));
   }
 
+  function handlePrint() {
+    savePDF(
+      REPORT_PRODUCTS,
+      ProductsSoldController.index(reportProductsDateRange)
+    );
+  }
+
   function handleStockHistoryItem(stockHistory) {
     if (stockHistory.stockChange && stockHistory.stockAdded) {
       return (
@@ -249,6 +325,14 @@ export default function Products() {
   return (
     <div>
       <Growl ref={growl} />
+
+      <FloatingButton>
+        <FiPrinter
+          size={30}
+          color="white"
+          onClick={toggleReportProductsModal}
+        />
+      </FloatingButton>
 
       <ListHeader
         btnText="Cadastrar Produto"
@@ -386,6 +470,54 @@ export default function Products() {
           </tbody>
         </table>
       </StockHistoryModal>
+
+      {/* Reports of products sold modal */}
+      <ReportProductsModal
+        isOpen={modalOpen.reportProductsModal}
+        onRequestClose={toggleReportProductsModal}
+        closeTimeoutMS={450}
+        overlayClassName="modal-overlay"
+      >
+        <h2>Relatório de produtos vendidos</h2>
+        <hr />
+        <div className="p-grid p-dir-col">
+          <p>Informe o período</p>
+          <Calendar
+            locale={ptbr}
+            appendTo={document.body}
+            dateFormat="dd/mm/yy"
+            value={reportProductsDateRange.startDate}
+            onChange={e =>
+              setReportProductsDateRange({
+                ...reportProductsDateRange,
+                startDate: e.target.value,
+              })
+            }
+            placeholder="Data inicial"
+          />
+
+          <Calendar
+            locale={ptbr}
+            appendTo={document.body}
+            dateFormat="dd/mm/yy"
+            value={reportProductsDateRange.endDate}
+            onChange={e =>
+              setReportProductsDateRange({
+                ...reportProductsDateRange,
+                endDate: e.target.value,
+              })
+            }
+            placeholder="Data Final"
+          />
+        </div>
+
+        <ModalButtonsContainer>
+          <SecondaryButton onClick={() => toggleReportProductsModal()}>
+            Fechar
+          </SecondaryButton>
+          <PrimaryButton onClick={() => handlePrint()}>Imprimir</PrimaryButton>
+        </ModalButtonsContainer>
+      </ReportProductsModal>
     </div>
   );
 }

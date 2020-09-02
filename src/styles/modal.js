@@ -179,9 +179,19 @@ const EditAddressModal = styled(BaseModal)`
   }
 `;
 
+const ReportProductsModal = styled(BaseModal)`
+  height: 300px;
+
+  input {
+    margin-top: 10px;
+    margin-left: 10px;
+  }
+`;
+
 export default BaseModal;
 export {
   ProductModal,
+  ReportProductsModal,
   ClientModal,
   ModalButtonsContainer,
   SaleModal,

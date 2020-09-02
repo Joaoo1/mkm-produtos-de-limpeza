@@ -12,14 +12,14 @@ import {
   DropdownList,
   DropdownItem,
 } from '../../styles/table';
-
-import { FloatingButton, PaymentSituation } from './styles';
+import { FloatingButton } from '../../styles/button';
+import { PaymentSituation } from './styles';
 
 import ListHeader from '../../components/ListHeader';
 import ConfirmModal from '../../components/ConfirmModal';
 
 import { successMsg, infoMsg } from '../../helpers/Growl';
-import savePDF from '../../helpers/SavePDF';
+import { savePDF, REPORT_SALES } from '../../helpers/SavePDF';
 
 export default function Sales() {
   const growl = useRef(null);
@@ -96,7 +96,7 @@ export default function Sales() {
   }
 
   function generateReport() {
-    savePDF(salesList);
+    savePDF(REPORT_SALES, salesList);
   }
 
   return (
