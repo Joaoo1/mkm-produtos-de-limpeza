@@ -57,9 +57,14 @@ function generateSalesPDF(list) {
 
 function generateSoldProductsPDF(list) {
   const doc = new JsPDF();
+
+  const values = list.map(product =>
+    Object.entries(product).map(keyValue => keyValue[1])
+  );
+
   doc.autoTable({
     head: [['Nome do produto', 'Quantidade vendida']],
-    body: [...list],
+    body: [...values],
   });
   doc.save('Relatório de produtos vendidos');
 }

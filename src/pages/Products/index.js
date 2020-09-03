@@ -234,9 +234,8 @@ export default function Products() {
           fetchProducts();
           successMsg(growl, `${product.newName} atualizado com sucesso`);
         },
-        error => {
+        () => {
           errorMsg(growl, `Ocorreu um erro ao atualizar produto`);
-          console.log(error);
         }
       );
       closeModal();
@@ -266,10 +265,28 @@ export default function Products() {
     setProduct(new Product({}));
   }
 
-  function handlePrint() {
+  async function generateReport() {
+    if (!reportProductsDateRange.startDate) {
+      errorMsg(growl, 'Informe a data de inicio do relatório');
+      return;
+    }
+
+    if (!reportProductsDateRange.finalDate) {
+      errorMsg(growl, 'Informe a data final do relatório');
+      return;
+    }
+
+    if (
+      reportProductsDateRange.startDate.getTime() >
+      reportProductsDateRange.finalDate.getTime()
+    ) {
+      errorMsg(growl, 'A data final não pode ser antes da data inicial!');
+      return;
+    }
+
     savePDF(
       REPORT_PRODUCTS,
-      ProductsSoldController.index(reportProductsDateRange)
+      await ProductsSoldController.index(reportProductsDateRange)
     );
   }
 
@@ -483,6 +500,7 @@ export default function Products() {
         <div className="p-grid p-dir-col">
           <p>Informe o período</p>
           <Calendar
+            key="initial"
             locale={ptbr}
             appendTo={document.body}
             dateFormat="dd/mm/yy"
@@ -495,16 +513,16 @@ export default function Products() {
             }
             placeholder="Data inicial"
           />
-
           <Calendar
+            key="final"
             locale={ptbr}
             appendTo={document.body}
             dateFormat="dd/mm/yy"
-            value={reportProductsDateRange.endDate}
+            value={reportProductsDateRange.finalDate}
             onChange={e =>
               setReportProductsDateRange({
                 ...reportProductsDateRange,
-                endDate: e.target.value,
+                finalDate: e.target.value,
               })
             }
             placeholder="Data Final"
@@ -515,7 +533,9 @@ export default function Products() {
           <SecondaryButton onClick={() => toggleReportProductsModal()}>
             Fechar
           </SecondaryButton>
-          <PrimaryButton onClick={() => handlePrint()}>Imprimir</PrimaryButton>
+          <PrimaryButton onClick={() => generateReport()}>
+            Gerar relatório
+          </PrimaryButton>
         </ModalButtonsContainer>
       </ReportProductsModal>
     </div>
