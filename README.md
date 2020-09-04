@@ -11,7 +11,7 @@
 </h4>
 
 
-Esse é um aplicativo desenvolvido em JavaScript com React criado especificamente para gerenciar uma pequena empresa de produtos de limpeza, porém é possivel usar em empresas de outro ramo.
+Esse é um aplicativo desenvolvido em JavaScript com React criado especificamente por mim para gerenciar uma pequena empresa de produtos de limpeza.
 
 ![Alt text](/demo/Dashboard.png "Página inicial")
 
