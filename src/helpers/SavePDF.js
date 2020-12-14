@@ -1,7 +1,10 @@
 import JsPDF from 'jspdf';
 import 'jspdf-autotable';
 
-export default function savePDF(list) {
+const REPORT_PRODUCTS = 'products';
+const REPORT_SALES = 'SALES';
+
+function generateSalesPDF(list) {
   const formattedList = list.map(sale => {
     const formattedSale = {
       date: sale.saleDate,
@@ -51,3 +54,34 @@ export default function savePDF(list) {
   });
   doc.save('Relatório de vendas');
 }
+
+function generateSoldProductsPDF(list) {
+  const doc = new JsPDF();
+
+  const values = list.map(product =>
+    Object.entries(product).map(keyValue => keyValue[1])
+  );
+
+  doc.autoTable({
+    head: [['Nome do produto', 'Quantidade vendida']],
+    body: [...values],
+  });
+  doc.save('Relatório de produtos vendidos');
+}
+
+function savePDF(type, list) {
+  switch (type) {
+    case REPORT_PRODUCTS:
+      generateSoldProductsPDF(list);
+      break;
+
+    case REPORT_SALES:
+      generateSalesPDF(list);
+      break;
+
+    default:
+      break;
+  }
+}
+
+export { savePDF, REPORT_SALES, REPORT_PRODUCTS };
