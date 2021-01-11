@@ -35,7 +35,7 @@ const SaleController = {
       return id.venda;
     });
     // The generate ID must to be between 1k and 10k
-    for (let i = 1000; i < 10000; i++) {
+    for (let i = 10000; i < 100000; i++) {
       if (!usedIds.includes(i)) {
         // A valid ID was found, now format sale and create it
         const mSale = new SaleFirestore({
@@ -72,6 +72,8 @@ const SaleController = {
         paid: sale.paymentMethod === 'paid',
       });
     }
+
+    console.log(mSale);
 
     return Firestore.collection(COL_SALES)
       .doc(sale.id)

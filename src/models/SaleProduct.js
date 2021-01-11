@@ -6,6 +6,6 @@ export default class SaleProduct {
     this.parentId = parentId;
     this.price = new Big(preco);
     this.quantity = quantidade;
-    this.manageStock = manageStock;
+    this.manageStock = !!manageStock;
   }
 }
