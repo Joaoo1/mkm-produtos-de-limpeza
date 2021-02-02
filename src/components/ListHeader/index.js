@@ -26,6 +26,7 @@ import {
   AddButton,
   ListHeaderContainer,
   FilterContainer,
+  InputIcon,
 } from './styles';
 import { errorMsg } from '../../helpers/Growl';
 
@@ -36,12 +37,14 @@ const propTypes = {
   filterEnabled: PropTypes.bool,
   filterButtonFunction: PropTypes.func,
   placeHolder: PropTypes.string,
+  inputType: PropTypes.string,
 };
 
 const defaultProps = {
   filterEnabled: false,
   placeHolder: '',
   filterButtonFunction: null,
+  inputType: 'text',
 };
 
 const ptbr = {
@@ -98,6 +101,7 @@ export default function ListHeader({
   filterEnabled,
   filterButtonFunction,
   placeHolder,
+  inputType,
 }) {
   const growl = useRef(null);
   const [showFilter, setShowFilter] = useState(false);
@@ -115,6 +119,8 @@ export default function ListHeader({
   const [addressType, setAddressType] = useState('');
   const [addressSuggestions, setAddressSuggestions] = useState(['']);
   const [address, setAddress] = useState('');
+
+  const [inputTextValue, setInputTextValue] = useState('');
 
   useEffect(() => {
     async function fetchAddress() {
@@ -225,11 +231,27 @@ export default function ListHeader({
     filterButtonFunction(allSales);
   }
 
+  function handleKeyPress(e) {
+    if (e.keyCode === 13) {
+      filterList(inputTextValue);
+    }
+  }
+
   return (
     <>
       <Growl ref={growl} />
       <ListHeaderContainer>
-        <InputText placeholder={placeHolder} onChange={e => filterList(e)} />
+        <InputText
+          type={inputType}
+          placeholder={placeHolder}
+          onKeyUp={handleKeyPress}
+          value={inputTextValue}
+          onChange={e => setInputTextValue(e.target.value)}
+        />
+        <InputIcon
+          className="pi pi-search"
+          onClick={() => filterList(inputTextValue)}
+        />
 
         {filterEnabled ? (
           <FilterButton onClick={() => setShowFilter(!showFilter)}>

@@ -24,3 +24,4 @@ export const SALE_CLIENT_CITY = 'cidadeCliente';
 export const SALE_CLIENT_PHONE = 'telefone';
 export const SALE_DATE = 'dataVenda';
 export const SALE_PAID = 'pago';
+export const SALE_ID = 'idVenda';

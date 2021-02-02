@@ -1,9 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FiMoreVertical, FiPrinter } from 'react-icons/fi';
 import { useHistory } from 'react-router-dom';
-
 import { Growl } from 'primereact/growl';
 import SaleController from '../../controllers/SaleController';
+
+import ListHeader from '../../components/ListHeader';
+import ConfirmModal from '../../components/ConfirmModal';
+import LoadingIndicator from '../../components/LoadingIndicator';
+import { successMsg, infoMsg, errorMsg } from '../../helpers/Growl';
+import { savePDF, REPORT_SALES } from '../../helpers/SavePDF';
+import { SALE_ID } from '../../constants/firestore';
 
 import { SaleModal } from '../../styles/modal';
 import {
@@ -14,12 +20,6 @@ import {
 } from '../../styles/table';
 import { FloatingButton } from '../../styles/button';
 import { PaymentSituation } from './styles';
-
-import ListHeader from '../../components/ListHeader';
-import ConfirmModal from '../../components/ConfirmModal';
-
-import { successMsg, infoMsg } from '../../helpers/Growl';
-import { savePDF, REPORT_SALES } from '../../helpers/SavePDF';
 
 export default function Sales() {
   const growl = useRef(null);
@@ -32,24 +32,46 @@ export default function Sales() {
   const [filteredList, setFilteredList] = useState([]);
   const [sale, setSale] = useState({});
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isLoading, setLoading] = useState(true);
 
   async function fetchSales() {
-    const sales = await SaleController.index(100);
-    setSalesList(sales);
-    setFilteredList(sales);
+    try {
+      setLoading(true);
+      const sales = await SaleController.index(100);
+      setSalesList(sales);
+      setFilteredList(sales);
+    } catch (err) {
+      errorMsg(growl, 'Erro ao carregar vendas');
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
     fetchSales();
   }, []);
 
-  function filterList(event) {
-    setFilteredList(
-      salesList.filter(sale =>
-        sale.saleId.toString().includes(event.target.value)
-      )
-    );
+  async function filterList(value) {
+    if (value === '') {
+      setFilteredList(salesList);
+      return;
+    }
+
+    const parsedValue = parseInt(value, 10);
+
+    try {
+      setLoading(true);
+      const sales = await SaleController.index(20, [
+        { field: SALE_ID, operator: '==', value: parsedValue },
+      ]);
+      setFilteredList(sales);
+    } catch (err) {
+      errorMsg(growl, 'Erro ao buscar vendas');
+    } finally {
+      setLoading(false);
+    }
   }
+
   function toggleDeleteModal(s) {
     setSale({});
     if (s) {
@@ -90,7 +112,7 @@ export default function Sales() {
     infoMsg(growl, 'Processando, aguarde um momento!');
 
     SaleController.update(sale, true).then(() => {
-      fetchSales();
+      sale.paid = true;
       successMsg(growl, 'Venda finalizada com sucesso');
     });
   }
@@ -101,6 +123,7 @@ export default function Sales() {
 
   return (
     <>
+      {isLoading && <LoadingIndicator />}
       <FloatingButton>
         <FiPrinter size={30} color="white" onClick={generateReport} />
       </FloatingButton>
@@ -119,6 +142,7 @@ export default function Sales() {
           setSalesList(sales);
           setFilteredList(sales);
         }}
+        inputType="number"
       />
 
       <SalesList id="sales-list">

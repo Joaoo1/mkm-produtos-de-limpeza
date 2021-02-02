@@ -36,6 +36,17 @@ export default createGlobalStyle`
     height: var(--height-button);
   }
 
+  // Remove spin from input number 
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+  }
+
+  input[type=number] {
+      -moz-appearance:textfield; /* Firefox */
+  }
+
   button:hover {
     opacity: 0.8;
     -moz-box-shadow:    inset 0 0 7px #0000002c;
@@ -83,5 +94,9 @@ export default createGlobalStyle`
   .flex-nowrap {
     display: flex;
     flex-wrap: nowrap;
+  }
+
+  .loading {
+    position: absolute;
   }
 `;
