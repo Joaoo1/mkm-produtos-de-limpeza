@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Big from 'big.js';
 import { FiMoreVertical, FiPrinter } from 'react-icons/fi';
 import { useHistory } from 'react-router-dom';
 import { Growl } from 'primereact/growl';
@@ -104,7 +105,7 @@ export default function Sales() {
     });
   }
 
-  function changeSaleSituation(sale) {
+  function changeSaleSituation(sale, index) {
     if (sale.paid) {
       infoMsg(growl, 'Esta venda já foi finalizada');
       return;
@@ -112,13 +113,35 @@ export default function Sales() {
     infoMsg(growl, 'Processando, aguarde um momento!');
 
     SaleController.update(sale, true).then(() => {
-      sale.paid = true;
+      const list = [...filteredList];
+      list[index] = {
+        ...sale,
+        paid: true,
+        situation: 'PAGO',
+        paidValue: sale.valueToReceive,
+        valueToReceive: new Big(0),
+      };
+      setFilteredList(list);
       successMsg(growl, 'Venda finalizada com sucesso');
     });
   }
 
+  async function handleApplyFiltersButton(filters) {
+    try {
+      setLoading(true);
+      const sales = await SaleController.index(null, filters);
+
+      setSalesList(sales);
+      setFilteredList(sales);
+    } catch (err) {
+      errorMsg('Erro ao filtrar vendas');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   function generateReport() {
-    savePDF(REPORT_SALES, salesList);
+    savePDF(REPORT_SALES, filteredList);
   }
 
   return (
@@ -138,10 +161,7 @@ export default function Sales() {
         placeHolder="Digite aqui o ID da venda"
         filterList={filterList}
         filterEnabled
-        filterButtonFunction={sales => {
-          setSalesList(sales);
-          setFilteredList(sales);
-        }}
+        filterButtonPress={filters => handleApplyFiltersButton(filters)}
         inputType="number"
       />
 
@@ -161,7 +181,7 @@ export default function Sales() {
         <tbody>
           {filteredList &&
             Array.isArray(filteredList) &&
-            filteredList.map(sale => (
+            filteredList.map((sale, idx) => (
               <tr key={sale.saleId}>
                 <td>{sale.saleId}</td>
                 <td>
@@ -185,7 +205,9 @@ export default function Sales() {
                   <DropdownList>
                     <FiMoreVertical size={24} />
                     <DropdownContent>
-                      <DropdownItem onClick={() => changeSaleSituation(sale)}>
+                      <DropdownItem
+                        onClick={() => changeSaleSituation(sale, idx)}
+                      >
                         Alterar situação de pagamento
                       </DropdownItem>
                       <DropdownItem

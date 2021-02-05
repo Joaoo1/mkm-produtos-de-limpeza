@@ -15,6 +15,7 @@ const BaseModal = styled(ReactModal)`
   padding: 15px 20px;
   font-weight: normal;
   overflow-y: scroll;
+
   input {
     margin-top: 3px;
   }

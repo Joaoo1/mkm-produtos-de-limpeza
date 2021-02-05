@@ -11,6 +11,16 @@ import {
   FiPrinter,
 } from 'react-icons/fi';
 
+import LoadingIndicator from '../../components/LoadingIndicator';
+import ListHeader from '../../components/ListHeader';
+import ConfirmModal from '../../components/ConfirmModal';
+import ProductController from '../../controllers/ProductController';
+import ProductsSoldController from '../../controllers/ProductsSoldController';
+import StockHistoryController from '../../controllers/StockHistoryController';
+import Product from '../../models/Product';
+import { successMsg, errorMsg } from '../../helpers/Growl';
+import { savePDF, REPORT_PRODUCTS } from '../../helpers/SavePDF';
+
 // Styled Components
 import {
   ProductModal,
@@ -29,20 +39,6 @@ import {
   DropdownList,
   DropdownItem,
 } from '../../styles/table';
-
-// Components import
-import ListHeader from '../../components/ListHeader';
-import ConfirmModal from '../../components/ConfirmModal';
-
-// Database Controller imports
-import ProductController from '../../controllers/ProductController';
-import ProductsSoldController from '../../controllers/ProductsSoldController';
-import StockHistoryController from '../../controllers/StockHistoryController';
-
-import Product from '../../models/Product';
-
-import { successMsg, errorMsg } from '../../helpers/Growl';
-import { savePDF, REPORT_PRODUCTS } from '../../helpers/SavePDF';
 
 const ptbr = {
   firstDayOfWeek: 1,
@@ -106,23 +102,31 @@ export default function Products() {
   const [product, setProduct] = useState({});
   const [productList, setProductList] = useState([]);
   const [filteredList, setFilteredList] = useState([]);
-
   const [reportProductsDateRange, setReportProductsDateRange] = useState({});
+  const [isLoading, setLoading] = useState(true);
+  const [isLoadingModal, setLoadingModal] = useState(false);
 
   async function fetchProducts() {
-    const products = await ProductController.index();
-    setProductList(products);
-    setFilteredList(products);
+    try {
+      setLoading(true);
+      const products = await ProductController.index();
+      setProductList(products);
+      setFilteredList(products);
+    } catch (err) {
+      errorMsg(growl, 'Erro ao carregar produtos');
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
     fetchProducts();
   }, []);
 
-  function filterList(event) {
+  function filterList(value) {
     setFilteredList(
       productList.filter(prod =>
-        prod.name.toLowerCase().includes(event.target.value.toLowerCase())
+        prod.name.toLowerCase().includes(value.toLowerCase())
       )
     );
   }
@@ -171,10 +175,18 @@ export default function Products() {
 
   async function toggleStockHistoryModal(p) {
     if (p) {
-      setProduct(p);
-      const stockHist = await StockHistoryController.index(p.id);
-      setStockHistories(stockHist);
-      setModalOpen({ ...modalOpen, stockHistoryModal: true });
+      try {
+        setModalOpen({ ...modalOpen, stockHistoryModal: true });
+        setLoadingModal(true);
+        setProduct(p);
+        const stockHist = await StockHistoryController.index(p.id);
+        setStockHistories(stockHist);
+      } catch (err) {
+        setModalOpen({ ...modalOpen, stockHistoryModal: false });
+        errorMsg(growl, 'Erro ao carregar histórico');
+      } finally {
+        setLoadingModal(false);
+      }
     } else {
       setModalOpen({ ...modalOpen, stockHistoryModal: false });
     }
@@ -223,46 +235,77 @@ export default function Products() {
   }
 
   // Function used to both create and edit
-  function handleSave(isUpdate) {
+  async function handleSave(isUpdate) {
     if (!validateForm()) {
       return;
     }
+    try {
+      setLoadingModal(true);
+      if (isUpdate) {
+        await ProductController.update(product);
+        successMsg(growl, `${product.newName} atualizado com sucesso`);
+        const newList = [...productList];
+        const newFilteredList = [...filteredList];
 
-    if (isUpdate) {
-      ProductController.update(product).then(
-        () => {
-          fetchProducts();
-          successMsg(growl, `${product.newName} atualizado com sucesso`);
-        },
-        () => {
-          errorMsg(growl, `Ocorreu um erro ao atualizar produto`);
-        }
-      );
-      closeModal();
-      setProduct(new Product({}));
-    } else {
-      ProductController.create(product).then(
-        () => {
-          fetchProducts();
-          successMsg(growl, `${product.newName} adicionado com sucesso`);
-        },
-        () => errorMsg(growl, `Ocorreu um erro ao adicionar produto`)
-      );
+        const idxFiltered = filteredList.findIndex(
+          element => element.id === product.id
+        );
+
+        const idx = productList.findIndex(element => element.id === product.id);
+
+        const newProduct = { ...product, name: product.newName };
+        newList[idx] = newProduct;
+        newFilteredList[idxFiltered] = newProduct;
+
+        setProductList(newList);
+        setFilteredList(newFilteredList);
+      } else {
+        await ProductController.create(product);
+        const newList = [...productList];
+        newList.push({
+          ...product,
+          name: product.newName,
+          id: 'thisisaworkaround',
+        });
+        newList.sort((a, b) => a.name.localeCompare(b.name));
+        setFilteredList(newList);
+        setProductList(newList);
+        successMsg(growl, `${product.newName} adicionado com sucesso`);
+      }
+    } catch (err) {
+      errorMsg(growl, 'Ocorreu um erro');
+    } finally {
+      setLoadingModal(false);
       closeModal();
       setProduct(new Product({}));
     }
   }
 
-  function handleDelete(p) {
-    ProductController.delete(p.id).then(
-      () => {
-        fetchProducts();
-        successMsg(growl, `${product.name} excluido com sucesso`);
-      },
-      () => errorMsg(growl, `Ocorreu um erro ao excluir produto`)
-    );
-    setModalOpen({ ...modalOpen, deleteModal: false });
-    setProduct(new Product({}));
+  async function handleDelete(p) {
+    try {
+      setLoading(true);
+      await ProductController.delete(p.id);
+      const newList = [...productList];
+      const newFilteredList = [...filteredList];
+
+      const idxFiltered = filteredList.findIndex(
+        element => element.id === p.id
+      );
+
+      const idx = productList.findIndex(element => element.id === p.id);
+
+      newList.splice(idx, 1);
+      newFilteredList.splice(idxFiltered, 1);
+      setProductList(newList);
+      setFilteredList(newFilteredList);
+      successMsg(growl, `${product.name} excluido com sucesso`);
+    } catch (err) {
+      errorMsg(growl, `Ocorreu um erro ao excluir produto`);
+    } finally {
+      setLoading(false);
+      setModalOpen({ ...modalOpen, deleteModal: false });
+      setProduct(new Product({}));
+    }
   }
 
   async function generateReport() {
@@ -339,8 +382,11 @@ export default function Products() {
       </tr>
     );
   }
+
   return (
-    <div>
+    <>
+      {isLoading && <LoadingIndicator />}
+
       <Growl ref={growl} />
 
       <FloatingButton>
@@ -421,48 +467,58 @@ export default function Products() {
         closeTimeoutMS={450}
         overlayClassName="modal-overlay"
       >
-        <h2>{modalTitle}</h2>
-        <hr />
-        <p>Nome</p>
-        <input
-          id="product-name"
-          value={product.newName}
-          onChange={e => setProduct({ ...product, newName: e.target.value })}
-        />
-        <p>Preço</p>
-        <input
-          type="number"
-          value={product.price}
-          onChange={e => setProduct({ ...product, price: e.target.value })}
-          onBlur={setPrice}
-        />
-        <CheckboxContainer>
-          <Checkbox
-            checked={product.manageStock}
-            onChange={() =>
-              setProduct({
-                ...product,
-                manageStock: !product.manageStock,
-              })
-            }
-          />
-          Gerenciar estoque
-        </CheckboxContainer>
-        <p>Estoque</p>
-        <input
-          type="number"
-          value={product.currentStock}
-          onChange={e => {
-            setProduct({ ...product, currentStock: e.target.value });
-          }}
-          disabled={!product.manageStock}
-        />
-        <ModalButtonsContainer>
-          <SecondaryButton onClick={() => closeModal()}>Fechar</SecondaryButton>
-          <PrimaryButton onClick={() => handleSave(product.id)}>
-            Salvar
-          </PrimaryButton>
-        </ModalButtonsContainer>
+        {isLoadingModal ? (
+          <LoadingIndicator absolute={false} />
+        ) : (
+          <>
+            <h2>{modalTitle}</h2>
+            <hr />
+            <p>Nome</p>
+            <input
+              id="product-name"
+              value={product.newName}
+              onChange={e =>
+                setProduct({ ...product, newName: e.target.value })
+              }
+            />
+            <p>Preço</p>
+            <input
+              type="number"
+              value={product.price}
+              onChange={e => setProduct({ ...product, price: e.target.value })}
+              onBlur={setPrice}
+            />
+            <CheckboxContainer>
+              <Checkbox
+                checked={product.manageStock}
+                onChange={() =>
+                  setProduct({
+                    ...product,
+                    manageStock: !product.manageStock,
+                  })
+                }
+              />
+              Gerenciar estoque
+            </CheckboxContainer>
+            <p>Estoque</p>
+            <input
+              type="number"
+              value={product.currentStock}
+              onChange={e => {
+                setProduct({ ...product, currentStock: e.target.value });
+              }}
+              disabled={!product.manageStock}
+            />
+            <ModalButtonsContainer>
+              <SecondaryButton onClick={() => closeModal()}>
+                Fechar
+              </SecondaryButton>
+              <PrimaryButton onClick={() => handleSave(product.id)}>
+                Salvar
+              </PrimaryButton>
+            </ModalButtonsContainer>
+          </>
+        )}
       </ProductModal>
 
       {/* StockHistory modal */}
@@ -472,20 +528,26 @@ export default function Products() {
         closeTimeoutMS={0}
         overlayClassName="modal-overlay"
       >
-        <div className="header">
-          <p>Histórico de estoque de {product.name}</p>
-          <FiX
-            size={24}
-            color="#837B7B"
-            onClick={() => toggleStockHistoryModal()}
-          />
-        </div>
-        <hr />
-        <table>
-          <tbody>
-            {stockHistories.map(doc => handleStockHistoryItem(doc))}
-          </tbody>
-        </table>
+        {isLoadingModal ? (
+          <LoadingIndicator absolute={false} />
+        ) : (
+          <>
+            <div className="header">
+              <p>Histórico de estoque de {product.name}</p>
+              <FiX
+                size={24}
+                color="#837B7B"
+                onClick={() => toggleStockHistoryModal()}
+              />
+            </div>
+            <hr />
+            <table>
+              <tbody>
+                {stockHistories.map(doc => handleStockHistoryItem(doc))}
+              </tbody>
+            </table>
+          </>
+        )}
       </StockHistoryModal>
 
       {/* Reports of products sold modal */}
@@ -538,6 +600,6 @@ export default function Products() {
           </PrimaryButton>
         </ModalButtonsContainer>
       </ReportProductsModal>
-    </div>
+    </>
   );
 }

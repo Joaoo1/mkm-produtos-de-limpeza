@@ -42,7 +42,6 @@ const LoginContainer = styled.div`
 `;
 
 const LoginFormContainer = styled.div`
-  background-color: #fff;
   width: 500px;
   border-radius: 15px;
   display: flex;
@@ -74,6 +73,12 @@ const LoginFormContainer = styled.div`
 
     input {
       margin: 5px 0 20px 0;
+      background-color: rgba(0, 74, 98, 0.20);
+      padding-left: 15px;
+    }
+
+    input::placeholder {
+      color: white;
     }
   }
 `;

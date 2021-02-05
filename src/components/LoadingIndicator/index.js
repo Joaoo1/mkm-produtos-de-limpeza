@@ -1,11 +1,20 @@
 import React from 'react';
 import ReactLoading from 'react-loading';
+import PropTypes from 'prop-types';
 
-import { LoadingContainer } from './styles';
+import { LoadingContainerLocal, LoadingContainerAbsolute } from './styles';
 
-export default function LoadingIndicator() {
-  return (
-    <LoadingContainer>
+const defaultProps = {
+  absolute: true,
+};
+
+const propTypes = {
+  absolute: PropTypes.bool,
+};
+
+const LoadingIndicator = ({ absolute }) => {
+  return absolute ? (
+    <LoadingContainerAbsolute>
       <ReactLoading
         type="spin"
         color="#1859ad"
@@ -13,6 +22,21 @@ export default function LoadingIndicator() {
         width={75}
         className="loading"
       />
-    </LoadingContainer>
+    </LoadingContainerAbsolute>
+  ) : (
+    <LoadingContainerLocal>
+      <ReactLoading
+        type="spin"
+        color="#1859ad"
+        height={100}
+        width={60}
+        className="loading"
+      />
+    </LoadingContainerLocal>
   );
-}
+};
+
+LoadingIndicator.defaultProps = defaultProps;
+LoadingIndicator.propTypes = propTypes;
+
+export default LoadingIndicator;

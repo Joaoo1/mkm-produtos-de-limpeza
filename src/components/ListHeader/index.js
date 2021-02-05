@@ -35,7 +35,7 @@ const propTypes = {
   btnFunction: PropTypes.func.isRequired,
   filterList: PropTypes.func.isRequired,
   filterEnabled: PropTypes.bool,
-  filterButtonFunction: PropTypes.func,
+  filterButtonPress: PropTypes.func,
   placeHolder: PropTypes.string,
   inputType: PropTypes.string,
 };
@@ -43,7 +43,7 @@ const propTypes = {
 const defaultProps = {
   filterEnabled: false,
   placeHolder: '',
-  filterButtonFunction: null,
+  filterButtonPress: null,
   inputType: 'text',
 };
 
@@ -99,7 +99,7 @@ export default function ListHeader({
   btnFunction,
   filterList,
   filterEnabled,
-  filterButtonFunction,
+  filterButtonPress,
   placeHolder,
   inputType,
 }) {
@@ -218,8 +218,7 @@ export default function ListHeader({
     if (!checkDateRange()) return;
     if (!checkSituation()) return;
 
-    const sales = await SaleController.index(null, filters);
-    filterButtonFunction(sales);
+    filterButtonPress(filters);
   }
 
   async function cleanFilter() {
@@ -228,7 +227,7 @@ export default function ListHeader({
     setAddressType('');
     setAddress('');
     const allSales = await SaleController.index(100);
-    filterButtonFunction(allSales);
+    filterButtonPress(allSales);
   }
 
   function handleKeyPress(e) {

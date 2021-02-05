@@ -73,8 +73,6 @@ const SaleController = {
       });
     }
 
-    console.log(mSale);
-
     return Firestore.collection(COL_SALES)
       .doc(sale.id)
       .update({ ...mSale });

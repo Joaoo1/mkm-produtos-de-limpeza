@@ -4,18 +4,18 @@ import { InputText } from 'primereact/inputtext';
 import { Growl } from 'primereact/growl';
 import { errorMsg, successMsg } from '../../helpers/Growl';
 
+import StreetController from '../../controllers/StreetController';
+import NeighborhoodController from '../../controllers/NeighborhoodController';
+import CityController from '../../controllers/CityController';
+import LoadingIndicator from '../../components/LoadingIndicator';
+
 import {
   SelectAddressModal,
   ModalButtonsContainer,
   EditAddressModal,
 } from '../../styles/modal';
-
 import { PrimaryButton, SecondaryButton } from '../../styles/button';
 import { AddressContainer, ManageAddress } from './styles';
-
-import StreetController from '../../controllers/StreetController';
-import NeighborhoodController from '../../controllers/NeighborhoodController';
-import CityController from '../../controllers/CityController';
 
 export default function Settings() {
   const STREET = 'rua';
@@ -39,19 +39,28 @@ export default function Settings() {
   const [addressList, setAddressList] = useState([]);
   const [filteredAddressList, setFilteredAddressList] = useState([]);
 
+  const [isLoading, setLoading] = useState(false);
+
   async function fetchAddresses(type) {
-    if (type === STREET) {
-      const allStreets = await StreetController.index();
-      setAddressList(allStreets);
-      setFilteredAddressList(allStreets);
-    } else if (type === NEIGHBORHOOD) {
-      const allNeighborhoods = await NeighborhoodController.index();
-      setAddressList(allNeighborhoods);
-      setFilteredAddressList(allNeighborhoods);
-    } else if (type === CITY) {
-      const allCities = await CityController.index();
-      setAddressList(allCities);
-      setFilteredAddressList(allCities);
+    try {
+      setLoading(true);
+      if (type === STREET) {
+        const allStreets = await StreetController.index();
+        setAddressList(allStreets);
+        setFilteredAddressList(allStreets);
+      } else if (type === NEIGHBORHOOD) {
+        const allNeighborhoods = await NeighborhoodController.index();
+        setAddressList(allNeighborhoods);
+        setFilteredAddressList(allNeighborhoods);
+      } else if (type === CITY) {
+        const allCities = await CityController.index();
+        setAddressList(allCities);
+        setFilteredAddressList(allCities);
+      }
+    } catch (err) {
+      errorMsg(growl, 'Erro ao carregar endereços');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -95,14 +104,16 @@ export default function Settings() {
         return;
       }
     }
-
-    StreetController.create({ nome_rua: value }).then(
-      () => {
-        successMsg(growl, 'Rua cadastrada com sucesso');
-        document.getElementById('input-street').value = '';
-      },
-      () => errorMsg(growl, 'Ocorreu um erro ao cadastrar rua')
-    );
+    try {
+      setLoading(true);
+      await StreetController.create({ nome_rua: value });
+      successMsg(growl, 'Rua cadastrada com sucesso');
+      document.getElementById('input-street').value = '';
+    } catch (err) {
+      errorMsg(growl, 'Ocorreu um erro ao cadastrar rua');
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleAddNeighborhood() {
@@ -116,13 +127,16 @@ export default function Settings() {
       }
     }
 
-    NeighborhoodController.create({ nome_bairro: value }).then(
-      () => {
-        successMsg(growl, 'Bairro cadastrado com sucesso');
-        document.getElementById('input-neighborhood').value = '';
-      },
-      () => errorMsg(growl, 'Ocorreu um erro ao cadastrar bairro')
-    );
+    try {
+      setLoading(true);
+      await NeighborhoodController.create({ nome_bairro: value });
+      document.getElementById('input-neighborhood').value = '';
+      successMsg(growl, 'Bairro cadastrado com sucesso');
+    } catch (err) {
+      errorMsg(growl, 'Ocorreu um erro ao cadastrar bairro');
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleAddCity() {
@@ -136,16 +150,19 @@ export default function Settings() {
       }
     }
 
-    CityController.create({ nome_cidade: value }).then(
-      () => {
-        successMsg(growl, 'Cidade cadastrada com sucesso');
-        document.getElementById('input-city').value = '';
-      },
-      () => errorMsg(growl, 'Ocorreu um erro ao cadastrar rua')
-    );
+    try {
+      setLoading(true);
+      await CityController.create({ nome_cidade: value });
+      document.getElementById('input-city').value = '';
+      successMsg(growl, 'Cidade cadastrada com sucesso');
+    } catch (err) {
+      errorMsg(growl, 'Ocorreu um erro ao cadastrar rua');
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function handleEditAddress() {
+  async function handleEditAddress() {
     const controller = () => {
       if (selectAddressModal.type === STREET) {
         return StreetController;
@@ -162,13 +179,17 @@ export default function Settings() {
 
     if (!controller()) return;
 
-    controller()
-      .update(editAddressModal.name, editAddressModal.id)
-      .then(() => {
-        successMsg(growl, 'Editado com sucesso');
-        fetchAddresses(selectAddressModal.type);
-        setEditAddressModal({ ...editAddressModal, isOpen: false });
-      });
+    try {
+      setLoading(true);
+      await controller().update(editAddressModal.name, editAddressModal.id);
+      successMsg(growl, 'Editado com sucesso');
+      fetchAddresses(selectAddressModal.type);
+      setEditAddressModal({ ...editAddressModal, isOpen: false });
+    } catch (err) {
+      errorMsg(growl, 'Erro ao editar endereço');
+    } finally {
+      setLoading(false);
+    }
   }
 
   function handleDeleteAddress(id) {
@@ -198,6 +219,9 @@ export default function Settings() {
 
   return (
     <>
+      {isLoading && !selectAddressModal.isOpen && !editAddressModal.isOpen && (
+        <LoadingIndicator />
+      )}
       <Growl ref={growl} />
       <AddressContainer>
         <SelectAddressModal
@@ -206,79 +230,85 @@ export default function Settings() {
           closeTimeoutMS={450}
           overlayClassName="modal-overlay"
         >
-          <header className="p-grid p-justify-between">
-            <h2>{`Editar ${selectAddressModal.type}s`}</h2>
-            <FiX size={28} onClick={toggleSelectAddressModal} />
-          </header>
-          <hr />
-          <InputText
-            placeholder="Digite aqui para buscar"
-            onChange={filterAddressList}
-          />
-          <table>
-            <thead>
-              <tr>
-                <th colSpan="2">Nome</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredAddressList.length > 0 &&
-                filteredAddressList.map(address => {
-                  return (
-                    <tr key={address.id}>
-                      <td>{address.name}</td>
-                      <td>
-                        <FiTrash2
-                          color="red"
-                          size={24}
-                          title={`Excluir ${selectAddressModal.type}`}
-                          onClick={() => handleDeleteAddress(address.id)}
-                        />
-                        <FiEdit
-                          size={24}
-                          onClick={() => toggleEditAddressModal(address)}
-                          title={`Editar ${selectAddressModal.type}`}
-                        />
-                      </td>
-                    </tr>
-                  );
-                })}
-            </tbody>
-          </table>
+          {isLoading ? (
+            <LoadingIndicator absolute={false} />
+          ) : (
+            <>
+              <header className="p-grid p-justify-between">
+                <h2>{`Editar ${selectAddressModal.type}s`}</h2>
+                <FiX size={28} onClick={toggleSelectAddressModal} />
+              </header>
+              <hr />
+              <InputText
+                placeholder="Digite aqui para buscar"
+                onChange={filterAddressList}
+              />
+              <table>
+                <thead>
+                  <tr>
+                    <th colSpan="2">Nome</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredAddressList.length > 0 &&
+                    filteredAddressList.map(address => {
+                      return (
+                        <tr key={address.id}>
+                          <td>{address.name}</td>
+                          <td>
+                            <FiTrash2
+                              color="red"
+                              size={24}
+                              title={`Excluir ${selectAddressModal.type}`}
+                              onClick={() => handleDeleteAddress(address.id)}
+                            />
+                            <FiEdit
+                              size={24}
+                              onClick={() => toggleEditAddressModal(address)}
+                              title={`Editar ${selectAddressModal.type}`}
+                            />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
 
-          <EditAddressModal
-            isOpen={editAddressModal.isOpen}
-            onRequestClose={toggleEditAddressModal}
-            closeTimeoutMS={450}
-            overlayClassName="modal-overlay"
-          >
-            <header className="p-grid p-justify-between">
-              <h2>Editar</h2>
-              <FiX size={28} />
-            </header>
-            <hr />
-            <InputText
-              id="input-edit-address"
-              value={editAddressModal.name}
-              onChange={e =>
-                setEditAddressModal({
-                  ...editAddressModal,
-                  name: e.target.value,
-                })
-              }
-            />
-            <hr />
-            <ModalButtonsContainer>
-              <SecondaryButton onClick={toggleSelectAddressModal}>
-                Fechar
-              </SecondaryButton>
-              <PrimaryButton
-                onClick={() => handleEditAddress(selectAddressModal.type)}
+              <EditAddressModal
+                isOpen={editAddressModal.isOpen}
+                onRequestClose={toggleEditAddressModal}
+                closeTimeoutMS={450}
+                overlayClassName="modal-overlay"
               >
-                Salvar
-              </PrimaryButton>
-            </ModalButtonsContainer>
-          </EditAddressModal>
+                <header className="p-grid p-justify-between">
+                  <h2>Editar</h2>
+                  <FiX size={28} />
+                </header>
+                <hr />
+                <InputText
+                  id="input-edit-address"
+                  value={editAddressModal.name}
+                  onChange={e =>
+                    setEditAddressModal({
+                      ...editAddressModal,
+                      name: e.target.value,
+                    })
+                  }
+                />
+                <hr />
+                <ModalButtonsContainer>
+                  <SecondaryButton onClick={toggleSelectAddressModal}>
+                    Fechar
+                  </SecondaryButton>
+                  <PrimaryButton
+                    onClick={() => handleEditAddress(selectAddressModal.type)}
+                  >
+                    Salvar
+                  </PrimaryButton>
+                </ModalButtonsContainer>
+              </EditAddressModal>
+            </>
+          )}
         </SelectAddressModal>
 
         <h2>Gerenciar endereços</h2>
