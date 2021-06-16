@@ -4,7 +4,7 @@ import { InputText } from 'primereact/inputtext';
 import auth from '../../server/Authentication';
 
 import { LoginContainer, LoginFormContainer, LoginButton } from './styles';
-import Logo from '../../assets/logo-novo.png';
+import Logo from '../../assets/logo-transparent.png';
 
 export default function Login() {
   const history = useHistory();
@@ -23,18 +23,9 @@ export default function Login() {
         </header>
 
         <form onSubmit={handleLogin}>
-          <div>
-            <p>Email</p>
-            <InputText id="inputEmail" placeholder="Digite seu email" />
-          </div>
-          <div>
-            <p>Senha</p>
-            <InputText
-              type="password"
-              id="inputPassword"
-              placeholder="Digite sua senha"
-            />
-          </div>
+          <InputText type="email" id="inputEmail" placeholder="Email" />
+
+          <InputText type="password" id="inputPassword" placeholder="Senha" />
 
           <LoginButton type="submit">Acessar o sistema</LoginButton>
         </form>

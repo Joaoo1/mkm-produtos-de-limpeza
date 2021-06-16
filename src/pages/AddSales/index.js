@@ -16,15 +16,15 @@ import { Checkbox } from 'primereact/checkbox';
 import { InputText } from 'primereact/inputtext';
 import { Growl } from 'primereact/growl';
 
-import { Header, Form, Values } from './styles';
-import { PrimaryButton } from '../../styles/button';
-import { SelectClientModal } from '../../styles/modal';
-
+import { successMsg, errorMsg } from '../../helpers/Growl';
+import LoadingIndicator from '../../components/LoadingIndicator';
 import ClientController from '../../controllers/ClientController';
 import ProductController from '../../controllers/ProductController';
 import SaleController from '../../controllers/SaleController';
 
-import { successMsg, errorMsg } from '../../helpers/Growl';
+import { Header, Form, Values } from './styles';
+import { PrimaryButton } from '../../styles/button';
+import { SelectClientModal } from '../../styles/modal';
 
 export default function AddSales() {
   const growl = useRef(null);
@@ -36,6 +36,7 @@ export default function AddSales() {
   const [productsSuggestions, setProductSuggestions] = useState([]);
   const [clients, setClients] = useState([]);
   const [filteredClients, setFilteredClients] = useState([]);
+  const [isLoading, setLoading] = useState(true);
 
   const [sale, setSale] = useState({
     paymentMethod: 'unpaid',
@@ -62,6 +63,7 @@ export default function AddSales() {
     async function fetchProducts() {
       const products = await ProductController.index();
       setAllProducts(products);
+      setLoading(false);
     }
 
     fetchProducts();
@@ -196,6 +198,7 @@ export default function AddSales() {
 
   function addSale() {
     if (validateSale()) {
+      setLoading(true);
       SaleController.create({
         ...sale,
         ...values,
@@ -205,8 +208,12 @@ export default function AddSales() {
         () => {
           successMsg(growl, 'Venda adicionada com sucesso');
           resetSale();
+          setLoading(false);
         },
-        error => errorMsg(growl, `${error}`)
+        error => {
+          errorMsg(growl, `${error}`);
+          setLoading(false);
+        }
       );
     }
   }
@@ -237,10 +244,17 @@ export default function AddSales() {
   async function toggleSelectClientModal() {
     setSelectClientModalOpen(!selectClientModalIsOpen);
     if (clients.length === 0) {
-      const clients = await ClientController.index();
-      setClients(clients);
-      setFilteredClients(clients);
-      return;
+      try {
+        setLoading(true);
+        const clients = await ClientController.index();
+        setClients(clients);
+        setFilteredClients(clients);
+        return;
+      } catch (err) {
+        errorMsg(growl, 'Erro ao carregar clientes');
+      } finally {
+        setLoading(false);
+      }
     }
 
     setFilteredClients(clients);
@@ -307,6 +321,7 @@ export default function AddSales() {
 
   return (
     <>
+      {isLoading && !selectClientModalIsOpen && <LoadingIndicator />}
       <Growl ref={growl} />
       <SelectClientModal
         isOpen={selectClientModalIsOpen}
@@ -332,14 +347,18 @@ export default function AddSales() {
             </tr>
           </thead>
           <tbody>
-            {filteredClients.map((client, idx) => {
-              return (
-                <tr key={client.id} onClick={() => selectClient(idx)}>
-                  <td>{client.name}</td>
-                  <td>{client.city}</td>
-                </tr>
-              );
-            })}
+            {isLoading ? (
+              <LoadingIndicator absolute={false} />
+            ) : (
+              filteredClients.map((client, idx) => {
+                return (
+                  <tr key={client.id} onClick={() => selectClient(idx)}>
+                    <td>{client.name}</td>
+                    <td>{client.city}</td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </SelectClientModal>

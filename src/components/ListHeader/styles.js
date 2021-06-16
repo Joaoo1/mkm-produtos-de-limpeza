@@ -114,4 +114,16 @@ const FilterContainer = styled.div`
   }
 `;
 
-export { FilterButton, AddButton, ListHeaderContainer, FilterContainer };
+const InputIcon = styled.i`
+  position: relative;
+  margin-left: -40px;
+  margin-right: 40px;
+`;
+
+export {
+  FilterButton,
+  AddButton,
+  ListHeaderContainer,
+  FilterContainer,
+  InputIcon,
+};

@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import moment from 'moment';
 import { Chart } from 'primereact/chart';
 import { FiDollarSign, FiPackage, FiUsers, FiRefreshCw } from 'react-icons/fi';
+import { Growl } from 'primereact/growl';
 
+import { successMsg, infoMsg, errorMsg } from '../../helpers/Growl';
 import DashboardController from '../../controllers/DashboardController';
 import {
   // TopSellingProducts,
@@ -16,6 +18,8 @@ import {
 } from './styles';
 
 export default function Dashboard() {
+  const growl = useRef(null);
+
   const [salesLast12Months, setSalesLast12Months] = useState({});
   const [generalInfo, setGeneralInfo] = useState({});
 
@@ -45,18 +49,30 @@ export default function Dashboard() {
     ],
   }; */
   function updateGeneralInfo() {
-    DashboardController.getGeneralinfo(true).then(data => {
-      setGeneralInfo(data);
-    });
+    try {
+      infoMsg(growl, 'Atualizando informações gerais');
+      DashboardController.getGeneralinfo(true).then(data => {
+        setGeneralInfo(data);
+        successMsg(growl, 'Atualizado com sucesso!');
+      });
+    } catch (err) {
+      errorMsg(growl, 'Erro ao carregar informações');
+    }
   }
   // Sales from last 12 months
   function updateSalesLast12Months() {
-    DashboardController.getSalesFromLast12Months(true).then(sales =>
-      setSalesLast12Months({
-        updatedAt: moment(new Date()).format('DD/MM HH:mm'),
-        salesByMonth: sales.data,
-      })
-    );
+    try {
+      infoMsg(growl, 'Processando requisição');
+      DashboardController.getSalesFromLast12Months(true).then(sales => {
+        setSalesLast12Months({
+          updatedAt: moment(new Date()).format('DD/MM HH:mm'),
+          salesByMonth: sales.data,
+        });
+        successMsg(growl, 'Atualizado com sucesso!');
+      });
+    } catch (err) {
+      errorMsg(growl, 'Ocorreu um erro ao carregar vendas');
+    }
   }
   const salesChartData = {
     labels: salesLast12Months.salesByMonth
@@ -98,6 +114,7 @@ export default function Dashboard() {
 
   return (
     <>
+      <Growl ref={growl} />
       <header className="p-grid p-justify-between">
         <Welcome>
           <p>Seja bem-vindo</p>
@@ -174,7 +191,6 @@ export default function Dashboard() {
             </UpdatedAt>
           </div>
         </div>
-
         <Chart type="bar" data={salesChartData} options={salesChartOptions} />
       </SalesChartContainer>
 

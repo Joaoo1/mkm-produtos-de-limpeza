@@ -1,9 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Big from 'big.js';
 import { FiMoreVertical, FiPrinter } from 'react-icons/fi';
 import { useHistory } from 'react-router-dom';
-
 import { Growl } from 'primereact/growl';
 import SaleController from '../../controllers/SaleController';
+
+import ListHeader from '../../components/ListHeader';
+import ConfirmModal from '../../components/ConfirmModal';
+import LoadingIndicator from '../../components/LoadingIndicator';
+import { successMsg, infoMsg, errorMsg } from '../../helpers/Growl';
+import { savePDF, REPORT_SALES } from '../../helpers/SavePDF';
+import { SALE_ID } from '../../constants/firestore';
 
 import { SaleModal } from '../../styles/modal';
 import {
@@ -14,12 +21,6 @@ import {
 } from '../../styles/table';
 import { FloatingButton } from '../../styles/button';
 import { PaymentSituation } from './styles';
-
-import ListHeader from '../../components/ListHeader';
-import ConfirmModal from '../../components/ConfirmModal';
-
-import { successMsg, infoMsg } from '../../helpers/Growl';
-import { savePDF, REPORT_SALES } from '../../helpers/SavePDF';
 
 export default function Sales() {
   const growl = useRef(null);
@@ -32,24 +33,46 @@ export default function Sales() {
   const [filteredList, setFilteredList] = useState([]);
   const [sale, setSale] = useState({});
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isLoading, setLoading] = useState(true);
 
   async function fetchSales() {
-    const sales = await SaleController.index(100);
-    setSalesList(sales);
-    setFilteredList(sales);
+    try {
+      setLoading(true);
+      const sales = await SaleController.index(100);
+      setSalesList(sales);
+      setFilteredList(sales);
+    } catch (err) {
+      errorMsg(growl, 'Erro ao carregar vendas');
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
     fetchSales();
   }, []);
 
-  function filterList(event) {
-    setFilteredList(
-      salesList.filter(sale =>
-        sale.saleId.toString().includes(event.target.value)
-      )
-    );
+  async function filterList(value) {
+    if (value === '') {
+      setFilteredList(salesList);
+      return;
+    }
+
+    const parsedValue = parseInt(value, 10);
+
+    try {
+      setLoading(true);
+      const sales = await SaleController.index(20, [
+        { field: SALE_ID, operator: '==', value: parsedValue },
+      ]);
+      setFilteredList(sales);
+    } catch (err) {
+      errorMsg(growl, 'Erro ao buscar vendas');
+    } finally {
+      setLoading(false);
+    }
   }
+
   function toggleDeleteModal(s) {
     setSale({});
     if (s) {
@@ -82,7 +105,7 @@ export default function Sales() {
     });
   }
 
-  function changeSaleSituation(sale) {
+  function changeSaleSituation(sale, index) {
     if (sale.paid) {
       infoMsg(growl, 'Esta venda já foi finalizada');
       return;
@@ -90,17 +113,40 @@ export default function Sales() {
     infoMsg(growl, 'Processando, aguarde um momento!');
 
     SaleController.update(sale, true).then(() => {
-      fetchSales();
+      const list = [...filteredList];
+      list[index] = {
+        ...sale,
+        paid: true,
+        situation: 'PAGO',
+        paidValue: sale.valueToReceive,
+        valueToReceive: new Big(0),
+      };
+      setFilteredList(list);
       successMsg(growl, 'Venda finalizada com sucesso');
     });
   }
 
+  async function handleApplyFiltersButton(filters) {
+    try {
+      setLoading(true);
+      const sales = await SaleController.index(null, filters);
+
+      setSalesList(sales);
+      setFilteredList(sales);
+    } catch (err) {
+      errorMsg('Erro ao filtrar vendas');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   function generateReport() {
-    savePDF(REPORT_SALES, salesList);
+    savePDF(REPORT_SALES, filteredList);
   }
 
   return (
     <>
+      {isLoading && <LoadingIndicator />}
       <FloatingButton>
         <FiPrinter size={30} color="white" onClick={generateReport} />
       </FloatingButton>
@@ -115,10 +161,8 @@ export default function Sales() {
         placeHolder="Digite aqui o ID da venda"
         filterList={filterList}
         filterEnabled
-        filterButtonFunction={sales => {
-          setSalesList(sales);
-          setFilteredList(sales);
-        }}
+        filterButtonPress={filters => handleApplyFiltersButton(filters)}
+        inputType="number"
       />
 
       <SalesList id="sales-list">
@@ -137,7 +181,7 @@ export default function Sales() {
         <tbody>
           {filteredList &&
             Array.isArray(filteredList) &&
-            filteredList.map(sale => (
+            filteredList.map((sale, idx) => (
               <tr key={sale.saleId}>
                 <td>{sale.saleId}</td>
                 <td>
@@ -161,7 +205,9 @@ export default function Sales() {
                   <DropdownList>
                     <FiMoreVertical size={24} />
                     <DropdownContent>
-                      <DropdownItem onClick={() => changeSaleSituation(sale)}>
+                      <DropdownItem
+                        onClick={() => changeSaleSituation(sale, idx)}
+                      >
                         Alterar situação de pagamento
                       </DropdownItem>
                       <DropdownItem
