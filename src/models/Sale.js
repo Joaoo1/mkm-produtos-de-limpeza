@@ -30,7 +30,7 @@ export default class Sale {
       ? convertTimeStampToString(dataPagamento)
       : '';
 
-    this.saleDate = dataVenda ? convertTimeStampToString(dataVenda) : '';
+    this.saleDate = dataVenda ? convertTimeStampToString(dataVenda, false) : '';
     this.saleId = idVenda;
     this.paid = pago;
     this.grossValue = new Big(valorBruto);

@@ -14,6 +14,8 @@ import {
   SALE_CLIENT_CITY,
   SALE_DATE,
   SALE_PAID,
+  SALE_SELLER_UID,
+  SALE_PAYMENT_DATE,
 } from '../../constants/firestore';
 
 import StreetController from '../../controllers/StreetController';
@@ -29,6 +31,7 @@ import {
   InputIcon,
 } from './styles';
 import { errorMsg } from '../../helpers/Growl';
+import UserController from '../../controllers/UserController';
 
 const propTypes = {
   btnText: PropTypes.string.isRequired,
@@ -119,6 +122,9 @@ export default function ListHeader({
   const [addressType, setAddressType] = useState('');
   const [addressSuggestions, setAddressSuggestions] = useState(['']);
   const [address, setAddress] = useState('');
+  const [sellers, setSellers] = useState([]);
+  const [selectedSeller, setSelectedSeller] = useState(null);
+  const [filterByPaymentDate, setFilterByPaymentData] = useState(false);
 
   const [inputTextValue, setInputTextValue] = useState('');
 
@@ -139,6 +145,15 @@ export default function ListHeader({
     }
     fetchAddress();
   }, [addressType]);
+
+  useEffect(() => {
+    async function fetchUsers() {
+      const users = await UserController.index();
+      setSellers(users);
+    }
+
+    fetchUsers();
+  }, []);
 
   function suggestsAddresses(event) {
     const suggestionResults = allAddresses.filter(addressSuggestion =>
@@ -178,9 +193,11 @@ export default function ListHeader({
         return true;
       }
 
+      const field = filterByPaymentDate ? SALE_PAYMENT_DATE : SALE_DATE;
+
       if (dateRange.startDate) {
         filters.push({
-          field: SALE_DATE,
+          field,
           operator: '>=',
           value: dateRange.startDate,
         });
@@ -195,16 +212,23 @@ export default function ListHeader({
         const date = new Date(dateRange.endDate);
         date.setDate(date.getDate() + 1);
         filters.push({
-          field: SALE_DATE,
+          field,
           operator: '<',
           value: date,
         });
+      }
+
+      if (filterByPaymentDate) {
       }
 
       return true;
     }
 
     function checkSituation() {
+      if (filterByPaymentDate) {
+        return true;
+      }
+
       if (situations.paid && !situations.unpaid) {
         filters.push({ field: SALE_PAID, operator: '==', value: true });
       } else if (situations.unpaid && !situations.paid) {
@@ -218,7 +242,16 @@ export default function ListHeader({
     if (!checkDateRange()) return;
     if (!checkSituation()) return;
 
-    filterButtonPress(filters);
+    if (selectedSeller) {
+      filters.push({
+        field: SALE_SELLER_UID,
+        operator: '==',
+        value: selectedSeller,
+      });
+    }
+
+    const orderBy = filterByPaymentDate ? SALE_PAYMENT_DATE : SALE_DATE;
+    filterButtonPress(filters, orderBy);
   }
 
   async function cleanFilter() {
@@ -226,6 +259,7 @@ export default function ListHeader({
     setSituations({ paid: false, unpaud: false });
     setAddressType('');
     setAddress('');
+    setFilterByPaymentData(false);
     const allSales = await SaleController.index(100);
     filterButtonPress(allSales);
   }
@@ -235,6 +269,9 @@ export default function ListHeader({
       filterList(inputTextValue);
     }
   }
+
+  const shouldShowFilterPaymentDateCheckbox =
+    dateRange.startDate || dateRange.endDate;
 
   return (
     <>
@@ -290,31 +327,43 @@ export default function ListHeader({
                 placeholder="Data Final"
               />
               <small>Deixar em branco pegará todas as datas</small>
+
+              {shouldShowFilterPaymentDateCheckbox && (
+                <label style={{ marginTop: 10 }}>
+                  <Checkbox
+                    checked={filterByPaymentDate}
+                    onChange={e => setFilterByPaymentData(e.target.checked)}
+                  />
+                  Filtrar pelo data de pagamento
+                </label>
+              )}
             </div>
-            <div className="situation">
-              <p>Situação do pagamento</p>
-              <label>
-                <Checkbox
-                  checked={situations.paid}
-                  onChange={() =>
-                    setSituations({ ...situations, paid: !situations.paid })
-                  }
-                />
-                Pago
-              </label>
-              <label>
-                <Checkbox
-                  checked={situations.unpaid}
-                  onChange={() =>
-                    setSituations({
-                      ...situations,
-                      unpaid: !situations.unpaid,
-                    })
-                  }
-                />
-                Não Pago
-              </label>
-            </div>
+            {!filterByPaymentDate && (
+              <div className="situation">
+                <p>Situação do pagamento</p>
+                <label>
+                  <Checkbox
+                    checked={situations.paid}
+                    onChange={() =>
+                      setSituations({ ...situations, paid: !situations.paid })
+                    }
+                  />
+                  Pago
+                </label>
+                <label>
+                  <Checkbox
+                    checked={situations.unpaid}
+                    onChange={() =>
+                      setSituations({
+                        ...situations,
+                        unpaid: !situations.unpaid,
+                      })
+                    }
+                  />
+                  Não Pago
+                </label>
+              </div>
+            )}
             <div className="address">
               <p>Endereço</p>
               <div className="p-grid p-dir-col p-nogutter">
@@ -334,11 +383,23 @@ export default function ListHeader({
                 />
               </div>
             </div>
+            <div className="seller">
+              <p>Vendedor</p>
+              <Dropdown
+                value={selectedSeller}
+                options={sellers.map(seller => ({
+                  label: seller.name,
+                  value: seller.uid,
+                }))}
+                onChange={e => setSelectedSeller(e.value)}
+                placeholder="Selecione o vendedor"
+              />
+            </div>
           </div>
           <div className="buttons">
-            <button type="button" onClick={cleanFilter}>
+            {/* <button type="button" onClick={cleanFilter}>
               Limpar filtro
-            </button>
+            </button> */}
             <button type="button" onClick={filter}>
               Aplicar filtro
             </button>

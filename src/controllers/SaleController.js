@@ -5,11 +5,12 @@ import {
   COL_SALES,
   SUBCOL_SALE_PRODUCTS,
   COL_SALE_IDS,
+  SALE_DATE,
 } from '../constants/firestore';
 
 const SaleController = {
-  async index(limit, filters) {
-    let query = Firestore.collection(COL_SALES).orderBy('dataVenda', 'desc');
+  async index(limit, filters, orderBy = SALE_DATE) {
+    let query = Firestore.collection(COL_SALES).orderBy(orderBy, 'desc');
 
     if (limit && !Number.isNaN(limit)) query = query.limit(limit);
 

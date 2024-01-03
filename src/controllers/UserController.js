@@ -11,6 +11,18 @@ const UserController = {
         return { name, email };
       });
   },
+  index() {
+    return Firestore.collection(COL_USERS)
+      .get()
+      .then(data => {
+        const allUsers = data.docs.map(snapshot => {
+          const { name, email, uid } = snapshot.data();
+          return { name, email, uid };
+        });
+        
+        return allUsers;
+      });
+  },
 };
 
 export default UserController;

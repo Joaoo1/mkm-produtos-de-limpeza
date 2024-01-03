@@ -2,9 +2,10 @@ import moment from 'moment';
 import app from 'firebase/app';
 import 'firebase/firestore';
 
-export function convertTimeStampToString(timestamp) {
+export function convertTimeStampToString(timestamp, longYear = true) {
   const date = timestamp.toDate();
-  return moment(date).format('DD/MM/YYYY HH:mm');
+  const year = longYear ? 'YYYY' : 'YY';
+  return moment(date).format(`DD/MM/${year} HH:mm`);
 }
 
 export function convertDateToString(date) {

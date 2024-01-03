@@ -126,10 +126,10 @@ export default function Sales() {
     });
   }
 
-  async function handleApplyFiltersButton(filters) {
+  async function handleApplyFiltersButton(filters, orderBy) {
     try {
       setLoading(true);
-      const sales = await SaleController.index(null, filters);
+      const sales = await SaleController.index(null, filters, orderBy);
 
       setSalesList(sales);
       setFilteredList(sales);
@@ -161,14 +161,14 @@ export default function Sales() {
         placeHolder="Digite aqui o ID da venda"
         filterList={filterList}
         filterEnabled
-        filterButtonPress={filters => handleApplyFiltersButton(filters)}
+        filterButtonPress={handleApplyFiltersButton}
         inputType="number"
       />
 
       <SalesList id="sales-list">
         <thead>
           <tr>
-            <th>ID da Venda</th>
+            <th>ID</th>
             <th>Valor</th>
             <th>Data</th>
             <th>Cliente</th>

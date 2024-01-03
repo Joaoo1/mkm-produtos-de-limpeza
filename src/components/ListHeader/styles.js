@@ -89,6 +89,10 @@ const FilterContainer = styled.div`
     }
   }
 
+  .seller {
+    width: 180px;
+  }
+
   .buttons {
     align-self: flex-end;
     margin-top: 15px;

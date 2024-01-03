@@ -7,7 +7,7 @@ export const Container = styled.div`
     'menu header'
     'menu main';
   grid-template-rows: 100px 1fr;
-  grid-template-columns: 250px 1fr;
+  grid-template-columns: 205px 1fr;
 `;
 
 /* Page header styles */
@@ -61,8 +61,8 @@ export const MenuHeader = styled.header`
   display: flex;
   justify-content: center;
   img {
-    width: 140px;
-    margin-top: 10px;
+    width: 125px;
+    margin-top: 20px;
   }
 `;
 
@@ -104,8 +104,12 @@ export const MenuFooter = styled.footer`
   padding: 20px;
   p,
   small {
-    margin: 10px 4px 0 10px;
+    margin: 5px 4px 0 10px;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    width: 100px;
   }
 
   small {
@@ -122,7 +126,7 @@ export const Main = styled.main`
   grid-area: main;
   background-color: #feffff;
   margin: 0px 30px 20px 30px;
-  padding: 5px 30px;
+  padding: 5px 20px;
   border-radius: 8px;
   overflow-y: scroll;
   width: auto;
