@@ -67,7 +67,7 @@ export default createGlobalStyle`
     width: 10px;  
   }
   ::-webkit-scrollbar-thumb {
-    background-color: #b9eafa;
+    background-color: #62affc;
     border-radius: 10px;
   }
 
