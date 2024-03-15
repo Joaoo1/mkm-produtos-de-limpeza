@@ -128,7 +128,6 @@ export const Main = styled.main`
   margin: 0px 30px 20px 30px;
   padding: 5px 20px;
   border-radius: 8px;
-  overflow-y: scroll;
   width: auto;
   height: auto;
 `;
